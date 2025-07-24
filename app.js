@@ -1,247 +1,129 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // --- PWA Navigation Logic ---
+    // --- Navigation and Page Management ---
     const navLinks = document.querySelectorAll('.nav-links a');
     const pages = document.querySelectorAll('.page');
-    const navigateButtons = document.querySelectorAll('.navigate-btn'); // For main nav buttons, and "Atur Target"
+    const appTitle = document.querySelector('.app-title');
 
-    function showPage(id) {
-        pages.forEach(page => page.classList.remove('active'));
-        document.querySelector(id).classList.add('active');
+    function showPage(pageId) {
+        pages.forEach(page => {
+            page.classList.remove('active');
+        });
+        document.getElementById(pageId).classList.add('active');
 
-        navLinks.forEach(link => link.classList.remove('active'));
-        const activeLink = document.querySelector(`.nav-links a[href="${id}"]`);
-        if (activeLink) {
-            activeLink.classList.add('active');
-        }
-        window.scrollTo(0, 0); // Scroll to top when changing page
-        // If navigating to home, update quick access
-        if (id === '#home') {
-            updateQuickAccessContent();
-        }
+        navLinks.forEach(link => {
+            if (link.getAttribute('href') === `#${pageId}`) {
+                link.classList.add('active');
+            } else {
+                link.classList.remove('active');
+            }
+        });
     }
 
-    // Event listener for main navigation
     navLinks.forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
-            const targetId = link.getAttribute('href');
-            showPage(targetId);
-            // Hide article detail view if navigating away from info-kesehatan
-            if (targetId !== '#info-kesehatan') {
-                document.getElementById('article-detail-view').style.display = 'none';
-                document.querySelector('.article-list').style.display = 'block';
-                document.querySelector('.search-bar').style.display = 'block';
-                document.querySelector('.article-categories').style.display = 'block';
-            }
+            const targetPageId = e.target.getAttribute('href').substring(1);
+            showPage(targetPageId);
         });
     });
 
-    // Event listener for all general navigation buttons (like "Atur Target" or article headlines)
-    navigateButtons.forEach(button => {
+    appTitle.addEventListener('click', () => {
+        showPage('home');
+    });
+
+    // Handle navigation from article links
+    document.querySelectorAll('.navigate-btn').forEach(button => {
         button.addEventListener('click', (e) => {
             e.preventDefault();
-            const targetId = button.getAttribute('data-target');
-            if (targetId) {
-                showPage(targetId);
-                // If navigating to an article detail from headline
-                if (button.hasAttribute('data-article-id') && targetId === '#info-kesehatan') {
-                    const articleId = button.getAttribute('data-article-id');
-                    showArticleDetail(articleId);
-                }
+            const targetId = e.target.dataset.target.substring(1);
+            showPage(targetId);
+            // If it's an article link, also show the specific article
+            if (e.target.dataset.articleId) {
+                const articleId = e.target.dataset.articleId;
+                showArticleDetail(articleId);
             }
         });
     });
 
-    // Initialize to Home page
-    showPage('#home');
+    // Initial page load
+    showPage('home');
 
-    // --- Data Storage (using localStorage for simplicity) ---
-    const getStoredData = (key, defaultValue = null) => {
-        try {
-            const data = localStorage.getItem(key);
-            return data ? JSON.parse(data) : defaultValue;
-        } catch (e) {
-            console.error(`Error retrieving ${key} from localStorage:`, e);
-            return defaultValue;
-        }
-    };
+    // --- Home Page Functionality ---
+    const dailyHealthSummary = document.getElementById('daily-health-summary');
+    const dailyHealthTip = document.getElementById('daily-health-tip');
+    const quickAccessContent = document.getElementById('quick-access-content');
 
-    const setStoredData = (key, data) => {
-        try {
-            localStorage.setItem(key, JSON.stringify(data));
-        } catch (e) {
-            console.error(`Error saving ${key} to localStorage:`, e);
-        }
-    };
+    function updateHomePage() {
+        // Daily Health Summary - Placeholder, could be dynamic based on user input
+        dailyHealthSummary.textContent = "Data kesehatan harian Anda akan muncul di sini setelah Anda mulai menggunakan alat bantu!";
 
-    // --- Helper function for daily reset logic (e.g., for medicine reminders and water intake) ---
-    function isToday(dateString) {
-        if (!dateString) return false;
-        return new Date(dateString).toDateString() === new Date().toDateString();
-    }
+        // Daily Health Tip - Loaded from HTML, but could be dynamic
+        // dailyHealthTip.textContent is already set in the HTML
 
-    // --- 1. Home Section Logic ---
-    const dailyHealthSummaryEl = document.getElementById('daily-health-summary');
-    const dailyHealthTipEl = document.getElementById('daily-health-tip');
-    const quickAccessContentEl = document.getElementById('quick-access-content'); // New element
+        // Quick Access - Placeholder for reminders
+        quickAccessContent.innerHTML = '<p>Anda belum memiliki pengingat cepat. Tambahkan pengingat obat atau target air minum di bagian "Alat Bantu".</p>';
 
-    // Load initial data for water and reset if new day
-    let waterConsumedToday = getStoredData('waterConsumedToday', 0);
-    let lastWaterResetDate = getStoredData('lastWaterResetDate', null);
-
-    if (!lastWaterResetDate || !isToday(lastWaterResetDate)) {
-        waterConsumedToday = 0; // Reset for new day
-        setStoredData('waterConsumedToday', waterConsumedToday);
-        setStoredData('lastWaterResetDate', new Date().toISOString());
-    }
-
-    let waterTarget = getStoredData('waterTarget', 2000); // Default 2000ml
-
-    function updateHomeSummary() {
-        // Update home page elements
-        const reminders = getStoredData('medicineReminders', []);
-        const now = new Date();
-        const activeReminders = reminders.filter(r => {
-            // Check if reminder is for today and not yet taken for the *current* schedule time
-            return r.schedule.some(time => {
-                const [hours, minutes] = time.split(':').map(Number);
-                const reminderTime = new Date();
-                reminderTime.setHours(hours, minutes, 0, 0);
-
-                // Reminder is active if it's for today, hasn't passed, and isn't marked as taken for this specific schedule
-                return isToday(reminderTime.toISOString()) &&
-                       reminderTime.getTime() > now.getTime() && // Reminder time is in the future
-                       !r.takenDates.some(takenEntry => isToday(takenEntry.date) && takenEntry.time === time); // Not taken for this time today
+        // Update with actual reminders if available (e.g., from medicine reminders)
+        const activeMedicineReminders = JSON.parse(localStorage.getItem('medicineReminders') || '[]');
+        if (activeMedicineReminders.length > 0) {
+            let remindersHtml = '<h3>Pengingat Aktif:</h3><ul>';
+            activeMedicineReminders.forEach(reminder => {
+                remindersHtml += `<li>Obat: ${reminder.name}, Dosis: ${reminder.dose}, Jadwal: ${reminder.schedule}</li>`;
             });
-        });
-
-        let summaryText = `Anda sudah minum **${waterConsumedToday / 1000} liter** air hari ini.`;
-        if (activeReminders.length > 0) {
-            summaryText += `<br>Ada **${activeReminders.length}** pengingat obat yang akan datang.`;
-        } else {
-            summaryText += `<br>Tidak ada pengingat obat yang akan datang hari ini.`;
-        }
-        dailyHealthSummaryEl.innerHTML = summaryText;
-
-        // Simple daily tip rotation
-        const tips = [
-            "Mulailah hari dengan segelas air putih!",
-            "Variasikan menu makanmu dengan sayuran berwarna!",
-            "Sempatkan peregangan ringan setiap 1-2 jam kerja.",
-            "Prioritaskan tidur 7-9 jam setiap malam untuk energi optimal.",
-            "Lakukan aktivitas fisik yang kamu nikmati, jangan hanya sebagai kewajiban."
-        ];
-        const today = new Date();
-        const dayOfYear = Math.floor((today - new Date(today.getFullYear(), 0, 0)) / 1000 / 60 / 60 / 24);
-        dailyHealthTipEl.textContent = tips[dayOfYear % tips.length];
-    }
-    updateHomeSummary(); // Initial update on load
-
-    // --- New: Update Quick Access Content ---
-    function updateQuickAccessContent() {
-        const reminders = getStoredData('medicineReminders', []);
-        const now = new Date();
-        const upcomingReminders = [];
-
-        reminders.forEach(r => {
-            r.schedule.forEach(time => {
-                const [hours, minutes] = time.split(':').map(Number);
-                const reminderDateTime = new Date();
-                reminderDateTime.setHours(hours, minutes, 0, 0);
-
-                // Filter for reminders that are for today and in the future
-                if (isToday(reminderDateTime.toISOString()) && reminderDateTime.getTime() > now.getTime()) {
-                    // Check if this specific schedule for today has already been taken
-                    const alreadyTaken = r.takenDates.some(takenEntry => isToday(takenEntry.date) && takenEntry.time === time);
-                    if (!alreadyTaken) {
-                        upcomingReminders.push({
-                            name: r.name,
-                            dose: r.dose,
-                            time: time,
-                            dateTime: reminderDateTime // Store the full date object for sorting
-                        });
-                    }
-                }
-            });
-        });
-
-        // Sort upcoming reminders by time
-        upcomingReminders.sort((a, b) => a.dateTime.getTime() - b.dateTime.getTime());
-
-        let contentHtml = '';
-        if (upcomingReminders.length > 0) {
-            contentHtml += '<p>Pengingat obat yang akan datang:</p><ul>';
-            // Show up to 3 upcoming reminders
-            for (let i = 0; i < Math.min(3, upcomingReminders.length); i++) {
-                const r = upcomingReminders[i];
-                contentHtml += `<li><strong>${r.name}</strong> (${r.dose}) pada **${r.time}**</li>`;
-            }
-            contentHtml += '</ul>';
-            // Add a button to navigate to the full medicine reminder section
-            contentHtml += `<button class="btn-primary navigate-btn" data-target="#tools-medicine">Lihat Semua Pengingat Obat</button>`;
-        } else {
-            contentHtml = '<p>Tidak ada pengingat obat yang akan datang hari ini.</p>';
-            contentHtml += `<button class="btn-primary navigate-btn" data-target="#tools-medicine">Tambah Pengingat Obat</button>`;
-        }
-        quickAccessContentEl.innerHTML = contentHtml;
-
-        // Re-attach event listeners for newly created navigate buttons
-        document.querySelectorAll('#quick-access-content .navigate-btn').forEach(button => {
-            button.removeEventListener('click', handleNavigateButtonClick); // Remove old listener if exists
-            button.addEventListener('click', handleNavigateButtonClick); // Add new one
-        });
-    }
-
-    // Helper function for navigate button click (to avoid duplication)
-    function handleNavigateButtonClick(e) {
-        e.preventDefault();
-        const targetId = this.getAttribute('data-target');
-        if (targetId) {
-            showPage(targetId);
+            remindersHtml += '</ul>';
+            quickAccessContent.innerHTML = remindersHtml;
         }
     }
+    updateHomePage(); // Call on initial load
 
-    updateQuickAccessContent(); // Initial update on load
-
-    // --- 2. Informasi Kesehatan Logic ---
+    // --- Informasi Kesehatan (Articles) Functionality ---
     const articleSearchInput = document.getElementById('article-search');
-    const articleListContainer = document.querySelector('.article-list');
-    const allArticleItems = document.querySelectorAll('.article-item');
+    const searchButton = document.getElementById('search-button');
     const categoryFilters = document.querySelectorAll('.category-filter');
-
+    const articleList = document.querySelector('.article-list');
     const articleDetailView = document.getElementById('article-detail-view');
     const detailArticleTitle = document.getElementById('detail-article-title');
     const detailArticleContent = document.getElementById('detail-article-content');
     const backToArticlesBtn = document.getElementById('back-to-articles');
+    const favoriteButtons = document.querySelectorAll('.add-to-favorite');
 
-    const articlesData = {
-        "1": {
-            title: "Manfaat Tidur Cukup untuk Produktivitas",
-            content: "Tidur yang berkualitas adalah fondasi penting untuk produktivitas dan kesehatan secara keseluruhan. Ketika Anda mendapatkan tidur yang cukup, otak Anda memiliki waktu untuk memproses informasi, mengkonsolidasikan memori, dan membuang racun yang menumpuk selama siang hari. Ini berarti Anda akan merasa lebih fokus, kreatif, dan mampu memecahkan masalah dengan lebih baik. Kurang tidur dapat menyebabkan penurunan konsentrasi, mood yang buruk, dan bahkan masalah kesehatan kronis. Pastikan Anda menciptakan rutinitas tidur yang konsisten, menjaga kamar tetap gelap dan sejuk, serta menghindari kafein dan layar gadget sebelum tidur. Prioritaskan tidur Anda sebagai investasi untuk hari esok yang lebih produktif!"
+    let articlesData = [
+        {
+            id: '1',
+            title: 'Manfaat Konsumsi Air Putih Cukup',
+            category: 'nutrisi',
+            content: 'Cukupan asupan air putih memegang peranan krusial bagi optimalnya fungsi tubuh secara menyeluruh, jauh melampaui sekadar pelepas dahaga. Dengan terhidrasi dengan baik, Anda membantu menjaga keseimbangan cairan tubuh yang vital untuk transportasi nutrisi, pengaturan suhu tubuh, dan pelumas sendi. Air adalah komponen utama darah dan berperan dalam membawa oksigen serta nutrisi penting ke sel-sel, sekaligus membantu membuang racun dan produk limbah metabolik melalui ginjal. Konsumsi air yang cukup juga mendukung fungsi kognitif yang optimal, meningkatkan konsentrasi, daya ingat, dan suasana hati, serta mencegah kelelahan. Bagi kesehatan fisik, air berkontribusi pada kulit yang sehat dan terhidrasi, mempercepat proses metabolisme yang penting untuk manajemen berat badan, dan membantu mencegah sembelit dengan melancarkan sistem pencernaan. Dengan demikian, minum air putih yang cukup setiap hari adalah investasi sederhana namun powerful untuk kesehatan jangka panjang dan kualitas hidup yang lebih baik.'
         },
-        "2": {
-            title: "Resep Smoothie Sehat untuk Sarapan",
-            content: "Memulai hari dengan sarapan bergizi adalah kunci untuk energi sepanjang hari. Smoothie bisa menjadi pilihan yang cepat dan lezat! Coba resep ini: Campurkan 1 buah pisang beku, segenggam bayam (jangan khawatir, rasanya tidak akan dominan!), setengah cangkir buah beri campur (stroberi, blueberry, raspberry), 1 sendok makan selai kacang alami, dan 1 cangkir susu nabati (almond, oat, atau kedelai). Blender semua bahan hingga halus. Smoothie ini kaya akan serat, vitamin, mineral, dan protein yang akan membuat Anda kenyang lebih lama. Anda bisa berkreasi dengan menambahkan biji chia, biji rami, atau bubuk protein untuk nutrisi tambahan. Selamat mencoba!"
+        {
+            id: '2',
+            title: 'Panduan Olahraga Ringan di Rumah',
+            category: 'gerak',
+            content: 'Tidak perlu ke gym, Anda bisa berolahraga ringan di rumah dengan efektif.Olahraga ringan di rumah adalah cara yang bagus untuk menjaga kebugaran tanpa perlu peralatan mahal atau pergi ke gym. Mulailah dengan pemanasan 5-10 menit seperti jalan di tempat atau peregangan dinamis. Kemudian, lakukan gerakan sederhana seperti squat, lunges, push-up (modifikasi lutut jika perlu), plank, dan jumping jack, masing-masing 10-15 repetisi atau tahan selama 30 detik, ulangi 2-3 set. Akhiri dengan pendinginan berupa peregangan statis untuk membantu pemulihan otot. Konsistensi adalah kunci, jadi usahakan berolahraga 3-4 kali seminggu, dan selalu dengarkan tubuh Anda untuk menghindari cedera.'
         },
-        "3": {
-            title: "Tips Meningkatkan Kualitas Tidur Anda",
-            content: "Kualitas tidur sangat memengaruhi kesehatan dan kesejahteraan Anda. Jika Anda kesulitan tidur nyenyak, ada beberapa kebiasaan yang bisa Anda coba. Pertama, buat jadwal tidur yang teratur, bahkan di akhir pekan. Kedua, ciptakan lingkungan kamar tidur yang ideal: gelap, tenang, dan sejuk. Hindari penggunaan perangkat elektronik setidaknya satu jam sebelum tidur karena cahaya biru dapat mengganggu produksi melatonin. Batasi konsumsi kafein dan alkohol, terutama di sore dan malam hari. Terakhir, pertimbangkan untuk melakukan aktivitas relaksasi sebelum tidur seperti membaca buku, mandi air hangat, atau meditasi ringan. Dengan konsistensi, Anda akan merasakan peningkatan kualitas tidur yang signifikan."
+        {
+            id: '3',
+            title: 'Tips Meningkatkan Kualitas Tidur Anda',
+            category: 'tidur',
+            content: 'Tidur yang berkualitas penting untuk kesehatan fisik dan mental, ada beberapa langkah yang bisa Anda terapkan secara konsisten. Prioritaskan untuk menjaga jadwal tidur yang teratur, bahkan di akhir pekan, dan ciptakan lingkungan kamar tidur yang gelap, tenang, dan sejuk. Hindari kafein dan alkohol menjelang waktu tidur, serta batasi paparan layar gawai atau perangkat elektronik setidaknya satu jam sebelum Anda beranjak ke tempat tidur. Melakukan aktivitas relaksasi seperti membaca buku atau mandi air hangat juga dapat membantu mempersiapkan tubuh Anda untuk tidur nyenyak.'
+        },
+        {
+            id: '4',
+            title: 'Kebersihan Diri dan Lingkungan',
+            category: 'perawatan',
+            content: 'Kesehatan optimal adalah aset berharga yang berakar kuat pada kebersihan, baik kebersihan diri maupun lingkungan di sekitar kita. Mencuci tangan dengan sabun, mandi teratur, dan menjaga kebersihan mulut adalah praktik personal vital yang menjadi perisai utama kita dari kuman dan infeksi. Sejalan dengan itu, menjaga kebersihan rumah—dengan rutin membersihkan permukaan, mengelola sampah, dan membersihkan area lembap seperti kamar mandi—serta tidak membuang sampah sembarangan di area publik, sangat krusial untuk mencegah penumpukan bakteri, virus, dan hama. Kedua aspek kebersihan ini saling melengkapi; kebersihan diri mencegah penyebaran kuman dari dan ke tubuh kita, sementara lingkungan yang bersih menciptakan ruang hidup yang sehat, secara sinergis membentuk benteng pertahanan terdepan kita melawan berbagai penyakit dan memastikan kualitas hidup yang lebih baik.'
         }
-    };
+    ];
 
-    function filterArticles() {
-        const searchTerm = articleSearchInput.value.toLowerCase();
-        const activeCategoryFilter = document.querySelector('.category-filter.active');
-        const activeCategory = activeCategoryFilter ? activeCategoryFilter.dataset.category : 'all';
+    function renderArticles(filterCategory = 'all', searchTerm = '') {
+        const articleItems = document.querySelectorAll('.article-item');
+        articleItems.forEach(item => {
+            const articleCategory = item.dataset.category;
+            const articleTitle = item.querySelector('h3').textContent.toLowerCase();
+            const articleContent = item.querySelector('p').textContent.toLowerCase();
+            const matchesCategory = filterCategory === 'all' || articleCategory === filterCategory;
+            const matchesSearch = searchTerm === '' || articleTitle.includes(searchTerm) || articleContent.includes(searchTerm);
 
-        allArticleItems.forEach(item => {
-            const title = item.querySelector('h3').textContent.toLowerCase();
-            const category = item.dataset.category;
-
-            const matchesSearch = title.includes(searchTerm);
-            const matchesCategory = (activeCategory === 'all' || category === activeCategory);
-
-            if (matchesSearch && matchesCategory) {
+            if (matchesCategory && matchesSearch) {
                 item.style.display = 'block';
             } else {
                 item.style.display = 'none';
@@ -249,385 +131,288 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    filterArticles(); // Initial filter when page loads
-    articleSearchInput.addEventListener('input', filterArticles);
+    // Initial render
+    renderArticles();
+
+    searchButton.addEventListener('click', () => {
+        const searchTerm = articleSearchInput.value.toLowerCase();
+        const activeCategory = document.querySelector('.category-filter.active').dataset.category;
+        renderArticles(activeCategory, searchTerm);
+    });
+
+    articleSearchInput.addEventListener('keyup', (e) => {
+        if (e.key === 'Enter') {
+            searchButton.click();
+        }
+    });
 
     categoryFilters.forEach(filter => {
         filter.addEventListener('click', (e) => {
             e.preventDefault();
             categoryFilters.forEach(f => f.classList.remove('active'));
-            filter.classList.add('active');
-            filterArticles();
+            e.target.classList.add('active');
+            const filterCategory = e.target.dataset.category;
+            const searchTerm = articleSearchInput.value.toLowerCase();
+            renderArticles(filterCategory, searchTerm);
         });
     });
 
     document.querySelectorAll('.article-detail-link').forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
-            const articleId = link.getAttribute('data-article-id');
+            const articleId = e.target.dataset.articleId;
             showArticleDetail(articleId);
         });
     });
 
-    backToArticlesBtn.addEventListener('click', () => {
-        articleDetailView.style.display = 'none';
-        articleListContainer.style.display = 'block';
-        document.querySelector('.search-bar').style.display = 'block';
-        document.querySelector('.article-categories').style.display = 'block';
-    });
-
-
     function showArticleDetail(articleId) {
-        const article = articlesData[articleId];
+        const article = articlesData.find(a => a.id === articleId);
         if (article) {
             detailArticleTitle.textContent = article.title;
-            detailArticleContent.textContent = article.content;
-
-            articleListContainer.style.display = 'none';
+            detailArticleContent.innerHTML = `<p>${article.content}</p>`;
+            articleList.style.display = 'none';
             document.querySelector('.search-bar').style.display = 'none';
             document.querySelector('.article-categories').style.display = 'none';
+            document.querySelector('.myth-vs-fact').style.display = 'none';
             articleDetailView.style.display = 'block';
-            window.scrollTo(0, 0);
-        } else {
-            alert('Artikel tidak ditemukan.');
+            window.scrollTo(0, 0); // Scroll to top for better viewing
         }
     }
 
+    backToArticlesBtn.addEventListener('click', () => {
+        articleDetailView.style.display = 'none';
+        articleList.style.display = 'block';
+        document.querySelector('.search-bar').style.display = 'flex';
+        document.querySelector('.article-categories').style.display = 'block';
+        document.querySelector('.myth-vs-fact').style.display = 'block';
+        detailArticleTitle.textContent = '';
+        detailArticleContent.innerHTML = '';
+    });
 
-    // Favorites logic
-    let favoriteArticles = getStoredData('favoriteArticles', []);
+    // Favorite articles (using localStorage)
+    let favoriteArticles = JSON.parse(localStorage.getItem('favoriteArticles') || '[]');
 
-    function updateFavoriteButtons() {
-        document.querySelectorAll('.add-to-favorite').forEach(button => {
-            const articleItem = button.closest('.article-item');
-            const articleId = articleItem.dataset.articleId;
-            const favoriteStatusSpan = articleItem.querySelector('.favorite-status');
-
-            if (favoriteArticles.includes(articleId)) {
+    function updateFavoriteStatus(articleId, isFavorite) {
+        const articleItem = document.querySelector(`.article-item[data-article-id="${articleId}"]`);
+        if (articleItem) {
+            const statusSpan = articleItem.querySelector('.favorite-status');
+            const button = articleItem.querySelector('.add-to-favorite');
+            if (isFavorite) {
+                statusSpan.textContent = ' (Favorit)';
                 button.textContent = 'Hapus dari Favorit';
-                button.classList.add('favorited');
-                favoriteStatusSpan.textContent = '⭐';
             } else {
+                statusSpan.textContent = '';
                 button.textContent = 'Tambah ke Favorit';
-                button.classList.remove('favorited');
-                favoriteStatusSpan.textContent = '';
             }
-        });
+        }
     }
-    updateFavoriteButtons(); // Call on load
 
-    document.querySelectorAll('.add-to-favorite').forEach(button => {
+    favoriteButtons.forEach(button => {
+        const articleItem = button.closest('.article-item');
+        const articleId = articleItem.dataset.articleId;
+        const isCurrentlyFavorite = favoriteArticles.includes(articleId);
+        updateFavoriteStatus(articleId, isCurrentlyFavorite);
+
         button.addEventListener('click', () => {
-            const articleItem = button.closest('.article-item');
-            const articleId = articleItem.dataset.articleId;
-
-            if (favoriteArticles.includes(articleId)) {
-                favoriteArticles = favoriteArticles.filter(id => id !== articleId);
-                alert(`Artikel dihapus dari favorit.`);
+            const index = favoriteArticles.indexOf(articleId);
+            if (index > -1) {
+                // Already in favorites, remove it
+                favoriteArticles.splice(index, 1);
+                updateFavoriteStatus(articleId, false);
             } else {
+                // Not in favorites, add it
                 favoriteArticles.push(articleId);
-                alert(`Artikel ditambahkan ke favorit!`);
+                updateFavoriteStatus(articleId, true);
             }
-            setStoredData('favoriteArticles', favoriteArticles);
-            updateFavoriteButtons();
+            localStorage.setItem('favoriteArticles', JSON.stringify(favoriteArticles));
         });
     });
 
+    // --- Tools Page Functionality ---
 
-    // --- 3. Tools Section Logic ---
-
-    // Pelacak Air Minum
-    const addWaterBtn = document.getElementById('add-water-btn');
-    const waterConsumedEl = document.getElementById('water-consumed');
+    // Water Tracker
+    const waterConsumedSpan = document.getElementById('water-consumed');
     const waterProgressBar = document.getElementById('water-progress-bar');
-    const waterTargetEl = document.getElementById('water-target');
+    const addWaterBtn = document.getElementById('add-water-btn');
+    const waterTargetSpan = document.getElementById('water-target');
+    let waterConsumed = parseInt(localStorage.getItem('waterConsumed') || '0');
+    let waterTarget = parseInt(localStorage.getItem('waterTarget') || '2000'); // Default 2000 ml
 
-    function updateWaterTrackerUI() {
-        waterConsumedEl.textContent = waterConsumedToday;
-        waterTargetEl.textContent = waterTarget;
-        const progress = (waterConsumedToday / waterTarget) * 100;
+    function updateWaterTracker() {
+        waterConsumedSpan.textContent = waterConsumed;
+        waterTargetSpan.textContent = waterTarget;
+        const progress = (waterConsumed / waterTarget) * 100;
         waterProgressBar.style.width = `${Math.min(100, progress)}%`;
-        waterProgressBar.style.backgroundColor = progress >= 100 ? '#28a745' : 'var(--color-green-primary)';
-        updateHomeSummary(); // Update home summary immediately
+        if (waterConsumed >= waterTarget) {
+            waterProgressBar.style.backgroundColor = '#28a745'; // Green when target met
+        } else {
+            waterProgressBar.style.backgroundColor = '#007bff'; // Blue otherwise
+        }
+        localStorage.setItem('waterConsumed', waterConsumed);
     }
-    updateWaterTrackerUI(); // Initial update
 
     addWaterBtn.addEventListener('click', () => {
-        waterConsumedToday += 250;
-        setStoredData('waterConsumedToday', waterConsumedToday);
-        updateWaterTrackerUI();
+        waterConsumed += 250; // Add 250 ml per click
+        updateWaterTracker();
     });
 
+    // Reset water consumed daily (for a real app, this would be handled by a date check)
+    // For demonstration, we can simulate a reset or add a manual reset button
+    // For now, it will persist until manually cleared or new day logic is added.
 
-    // Pengingat Obat
+    updateWaterTracker(); // Initial update
+
+    // Medicine Reminders
     const addMedicineForm = document.getElementById('add-medicine-form');
+    const medicineNameInput = document.getElementById('medicine-name');
+    const medicineDoseInput = document.getElementById('medicine-dose');
+    const medicineScheduleInput = document.getElementById('medicine-schedule');
     const activeMedicineRemindersList = document.getElementById('active-medicine-reminders');
-    let medicineReminders = getStoredData('medicineReminders', []);
+
+    let medicineReminders = JSON.parse(localStorage.getItem('medicineReminders') || '[]');
 
     function renderMedicineReminders() {
         activeMedicineRemindersList.innerHTML = '';
         if (medicineReminders.length === 0) {
-            activeMedicineRemindersList.innerHTML = '<li>Belum ada pengingat obat.</li>';
-            return;
+            activeMedicineRemindersList.innerHTML = '<p>Belum ada pengingat obat aktif.</p>';
+        } else {
+            medicineReminders.forEach((reminder, index) => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    Obat: <strong>${reminder.name}</strong>, Dosis: ${reminder.dose}, Jadwal: ${reminder.schedule}
+                    <button class="delete-medicine-reminder btn-danger" data-index="${index}">Hapus</button>
+                `;
+                activeMedicineRemindersList.appendChild(li);
+            });
         }
-
-        const now = new Date();
-        medicineReminders.forEach((reminder, index) => {
-            const li = document.createElement('li');
-            let statusHtml = '';
-            let isAnyScheduleTakenToday = false;
-            let nextScheduleTime = null;
-
-            reminder.schedule.forEach(time => {
-                const [hours, minutes] = time.split(':').map(Number);
-                const reminderDateTime = new Date();
-                reminderDateTime.setHours(hours, minutes, 0, 0);
-
-                const isThisScheduleTakenToday = reminder.takenDates.some(takenEntry => isToday(takenEntry.date) && takenEntry.time === time);
-
-                if (isThisScheduleTakenToday) {
-                    statusHtml += `<span class="completed-schedule">${time} ✔️</span> `;
-                    isAnyScheduleTakenToday = true;
-                } else if (reminderDateTime.getTime() < now.getTime() && isToday(reminderDateTime.toISOString())) {
-                    // Schedule passed for today and not taken
-                    statusHtml += `<span class="missed-schedule">${time} ❌</span> `;
-                } else {
-                    // Upcoming schedule
-                    statusHtml += `<span class="upcoming-schedule">${time}</span> `;
-                    if (!nextScheduleTime) { // Find the very next upcoming schedule
-                        nextScheduleTime = time;
-                    }
-                }
-            });
-
-            const isDisabled = isAnyScheduleTakenToday ? 'disabled' : ''; // Disable if at least one schedule taken
-            const buttonText = nextScheduleTime ? `Tandai ${nextScheduleTime} Selesai` : (isAnyScheduleTakenToday ? 'Semua Selesai Hari Ini' : 'Tandai Selesai');
-            const buttonClass = isAnyScheduleTakenToday ? 'mark-as-taken completed' : 'mark-as-taken';
-            
-            li.innerHTML = `
-                ${reminder.name} - ${reminder.dose} <br> Jadwal: ${statusHtml}
-                <button class="${buttonClass}" data-index="${index}" ${isDisabled}>${buttonText}</button>
-                <button class="btn-link remove-medicine" data-index="${index}">Hapus</button>
-            `;
-            activeMedicineRemindersList.appendChild(li);
-        });
-
-        document.querySelectorAll('.mark-as-taken:not(.completed)').forEach(button => {
-            button.addEventListener('click', (e) => {
-                const index = parseInt(e.target.dataset.index);
-                const reminder = medicineReminders[index];
-                const nowTime = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false });
-
-                // Find the closest upcoming schedule to mark as taken
-                let closestScheduleToMark = null;
-                let minDiff = Infinity;
-
-                reminder.schedule.forEach(time => {
-                    const [hours, minutes] = time.split(':').map(Number);
-                    const scheduleDateTime = new Date();
-                    scheduleDateTime.setHours(hours, minutes, 0, 0);
-
-                    const isThisScheduleTakenToday = reminder.takenDates.some(takenEntry => isToday(takenEntry.date) && takenEntry.time === time);
-
-                    if (!isThisScheduleTakenToday && isToday(scheduleDateTime.toISOString())) {
-                        const diff = Math.abs(scheduleDateTime.getTime() - new Date().getTime());
-                        if (diff < minDiff) {
-                            minDiff = diff;
-                            closestScheduleToMark = time;
-                        }
-                    }
-                });
-
-                if (closestScheduleToMark) {
-                    if (!reminder.takenDates) {
-                        reminder.takenDates = [];
-                    }
-                    reminder.takenDates.push({ date: new Date().toISOString(), time: closestScheduleToMark });
-                    setStoredData('medicineReminders', medicineReminders);
-                    renderMedicineReminders();
-                    updateHomeSummary();
-                    updateQuickAccessContent(); // Update quick access after medicine reminder changes
-                    alert(`Pengingat obat ${reminder.name} (${closestScheduleToMark}) ditandai selesai!`);
-                } else {
-                    alert('Tidak ada jadwal yang bisa ditandai selesai saat ini.');
-                }
-            });
-        });
-
-        document.querySelectorAll('.remove-medicine').forEach(button => {
-            button.addEventListener('click', (e) => {
-                const index = parseInt(e.target.dataset.index);
-                const confirmDelete = confirm(`Yakin ingin menghapus pengingat obat "${medicineReminders[index].name}"?`);
-                if (confirmDelete) {
-                    medicineReminders.splice(index, 1);
-                    setStoredData('medicineReminders', medicineReminders);
-                    renderMedicineReminders();
-                    updateHomeSummary();
-                    updateQuickAccessContent(); // Update quick access after medicine reminder changes
-                }
-            });
-        });
+        updateHomePage(); // Update quick access on home page
     }
-    renderMedicineReminders(); // Initial render
 
     addMedicineForm.addEventListener('submit', (e) => {
         e.preventDefault();
-        const name = document.getElementById('medicine-name').value;
-        const dose = document.getElementById('medicine-dose').value;
-        const scheduleInput = document.getElementById('medicine-schedule').value;
-        const schedule = scheduleInput.split(',').map(s => s.trim());
+        const name = medicineNameInput.value;
+        const dose = medicineDoseInput.value;
+        const schedule = medicineScheduleInput.value; // HH:MM, HH:MM
 
-        const isValidSchedule = schedule.every(time => /^\d{2}:\d{2}$/.test(time));
-        if (!isValidSchedule) {
-            alert('Format jadwal tidak valid. Gunakan HH:MM, HH:MM. Contoh: 08:00, 15:00');
-            return;
+        if (name && dose && schedule) {
+            medicineReminders.push({ name, dose, schedule });
+            localStorage.setItem('medicineReminders', JSON.stringify(medicineReminders));
+            renderMedicineReminders();
+            medicineNameInput.value = '';
+            medicineDoseInput.value = '';
+            medicineScheduleInput.value = '';
+            alert('Pengingat obat berhasil ditambahkan!');
+        } else {
+            alert('Harap isi semua kolom untuk pengingat obat.');
         }
-
-        const newReminder = { name, dose, schedule, takenDates: [] }; // takenDates to track daily completion per schedule
-        medicineReminders.push(newReminder);
-        setStoredData('medicineReminders', medicineReminders);
-        renderMedicineReminders();
-        addMedicineForm.reset();
-        updateHomeSummary();
-        updateQuickAccessContent(); // Update quick access after adding new reminder
     });
 
-    // Reset daily taken status for reminders
-    function resetDailyMedicineStatus() {
-        let changed = false;
-        medicineReminders.forEach(reminder => {
-            // Filter out old taken dates, keep only today's (if any)
-            const todayTakenEntries = reminder.takenDates.filter(takenEntry => isToday(takenEntry.date));
-            if (todayTakenEntries.length !== reminder.takenDates.length) {
-                reminder.takenDates = todayTakenEntries;
-                changed = true;
-            }
-        });
-        if (changed) {
-            setStoredData('medicineReminders', medicineReminders);
+    activeMedicineRemindersList.addEventListener('click', (e) => {
+        if (e.target.classList.contains('delete-medicine-reminder')) {
+            const indexToDelete = parseInt(e.target.dataset.index);
+            medicineReminders.splice(indexToDelete, 1);
+            localStorage.setItem('medicineReminders', JSON.stringify(medicineReminders));
             renderMedicineReminders();
-            updateHomeSummary();
-            updateQuickAccessContent(); // Update quick access after daily reset
         }
-    }
-    const lastMedicineResetDate = getStoredData('lastMedicineResetDate', null);
-    if (!lastMedicineResetDate || !isToday(lastMedicineResetDate)) {
-        resetDailyMedicineStatus();
-        setStoredData('lastMedicineResetDate', new Date().toISOString());
-    }
+    });
 
+    renderMedicineReminders(); // Initial render
 
-    // Jurnal Mood Harian
+    // Mood Journal
     const moodEmojis = document.querySelectorAll('.mood-emoji');
     const moodNotesInput = document.getElementById('mood-notes');
     const saveMoodBtn = document.getElementById('save-mood-btn');
     const moodHistoryList = document.getElementById('mood-history');
-    let moodHistory = getStoredData('moodHistory', []);
-    let selectedMood = null;
+    let selectedMood = '';
+
+    let moodHistory = JSON.parse(localStorage.getItem('moodHistory') || '[]');
 
     function renderMoodHistory() {
         moodHistoryList.innerHTML = '';
         if (moodHistory.length === 0) {
-            moodHistoryList.innerHTML = '<li>Belum ada riwayat mood.</li>';
-            return;
+            moodHistoryList.innerHTML = '<p>Belum ada catatan mood.</p>';
+        } else {
+            moodHistory.forEach(entry => {
+                const li = document.createElement('li');
+                li.textContent = `${new Date(entry.timestamp).toLocaleString()}: ${entry.mood} - ${entry.notes}`;
+                moodHistoryList.appendChild(li);
+            });
         }
-        moodHistory.forEach(entry => {
-            const li = document.createElement('li');
-            li.innerHTML = `<strong>${new Date(entry.date).toLocaleDateString()}</strong> ${entry.emoji} ${entry.mood} - ${entry.notes || ''}`;
-            moodHistoryList.appendChild(li);
-        });
     }
-    renderMoodHistory();
 
     moodEmojis.forEach(emoji => {
         emoji.addEventListener('click', () => {
             moodEmojis.forEach(e => e.classList.remove('selected'));
             emoji.classList.add('selected');
-            selectedMood = {
-                mood: emoji.dataset.mood,
-                emoji: emoji.textContent.trim().split(' ')[0]
-            };
+            selectedMood = emoji.dataset.mood;
         });
     });
 
     saveMoodBtn.addEventListener('click', () => {
         if (selectedMood) {
-            const newMoodEntry = {
-                date: new Date().toISOString(),
-                mood: selectedMood.mood,
-                emoji: selectedMood.emoji,
-                notes: moodNotesInput.value.trim()
-            };
-            const todayEntryIndex = moodHistory.findIndex(entry => isToday(entry.date));
-            if (todayEntryIndex > -1) {
-                moodHistory[todayEntryIndex] = newMoodEntry;
-            } else {
-                moodHistory.unshift(newMoodEntry);
-            }
-
-            setStoredData('moodHistory', moodHistory);
+            const notes = moodNotesInput.value.trim();
+            moodHistory.unshift({ // Add to the beginning for reverse chronological order
+                timestamp: new Date().toISOString(),
+                mood: selectedMood,
+                notes: notes || 'Tidak ada catatan'
+            });
+            localStorage.setItem('moodHistory', JSON.stringify(moodHistory));
             renderMoodHistory();
-            selectedMood = null;
+            selectedMood = '';
             moodNotesInput.value = '';
             moodEmojis.forEach(e => e.classList.remove('selected'));
-            alert('Mood Anda berhasil disimpan!');
+            alert('Mood berhasil disimpan!');
         } else {
-            alert('Silakan pilih mood Anda terlebih dahulu.');
+            alert('Harap pilih mood Anda sebelum menyimpan.');
         }
     });
 
-    // Kalkulator BMI
+    renderMoodHistory(); // Initial render
+
+    // Basic Health Calculators
+
+    // BMI Calculator
     const bmiHeightInput = document.getElementById('bmi-height');
     const bmiWeightInput = document.getElementById('bmi-weight');
     const calculateBmiBtn = document.getElementById('calculate-bmi-btn');
-    const bmiResultEl = document.getElementById('bmi-result');
-    const bmiCategoryEl = document.getElementById('bmi-category');
+    const bmiResultSpan = document.getElementById('bmi-result');
+    const bmiCategorySpan = document.getElementById('bmi-category');
 
     calculateBmiBtn.addEventListener('click', () => {
         const heightCm = parseFloat(bmiHeightInput.value);
         const weightKg = parseFloat(bmiWeightInput.value);
 
         if (isNaN(heightCm) || isNaN(weightKg) || heightCm <= 0 || weightKg <= 0) {
-            alert('Mohon masukkan tinggi dan berat badan yang valid.');
+            alert('Harap masukkan tinggi dan berat badan yang valid.');
             return;
         }
 
         const heightM = heightCm / 100;
-        const bmi = (weightKg / (heightM * heightM)).toFixed(2);
+        const bmi = weightKg / (heightM * heightM);
         let category = '';
 
         if (bmi < 18.5) {
-            category = 'Kurus';
-        } else if (bmi >= 18.5 && bmi <= 24.9) {
-            category = 'Normal';
-        } else if (bmi >= 25 && bmi <= 29.9) {
-            category = 'Gemuk (Overweight)';
+            category = 'Kekurangan Berat Badan';
+        } else if (bmi >= 18.5 && bmi < 24.9) {
+            category = 'Berat Badan Normal';
+        } else if (bmi >= 25 && bmi < 29.9) {
+            category = 'Kelebihan Berat Badan';
         } else {
-            category = 'Sangat Gemuk (Obese)';
+            category = 'Obesitas';
         }
 
-        bmiResultEl.textContent = bmi;
-        bmiCategoryEl.textContent = category;
-        setStoredData('lastBMI', { heightCm, weightKg, bmi, category });
+        bmiResultSpan.textContent = bmi.toFixed(2);
+        bmiCategorySpan.textContent = category;
     });
 
-    const lastBMI = getStoredData('lastBMI', null);
-    if (lastBMI) {
-        bmiHeightInput.value = lastBMI.heightCm;
-        bmiWeightInput.value = lastBMI.weightKg;
-        bmiResultEl.textContent = lastBMI.bmi;
-        bmiCategoryEl.textContent = lastBMI.category;
-    }
-
-
-    // Kalkulator Kebutuhan Kalori Estimasi
+    // Estimated Calorie Needs Calculator
     const calorieAgeInput = document.getElementById('calorie-age');
     const calorieGenderSelect = document.getElementById('calorie-gender');
     const calorieHeightInput = document.getElementById('calorie-height');
     const calorieWeightInput = document.getElementById('calorie-weight');
     const calorieActivitySelect = document.getElementById('calorie-activity');
     const calculateCalorieBtn = document.getElementById('calculate-calorie-btn');
-    const calorieResultEl = document.getElementById('calorie-result');
+    const calorieResultSpan = document.getElementById('calorie-result');
 
     calculateCalorieBtn.addEventListener('click', () => {
         const age = parseInt(calorieAgeInput.value);
@@ -637,269 +422,153 @@ document.addEventListener('DOMContentLoaded', () => {
         const activityLevel = calorieActivitySelect.value;
 
         if (isNaN(age) || isNaN(heightCm) || isNaN(weightKg) || age <= 0 || heightCm <= 0 || weightKg <= 0) {
-            alert('Mohon masukkan data yang valid untuk perhitungan kalori.');
+            alert('Harap masukkan usia, tinggi, dan berat badan yang valid.');
             return;
         }
 
-        let bmr;
+        let bmr; // Basal Metabolic Rate
+
+        // Mifflin-St Jeor Equation
         if (gender === 'male') {
             bmr = (10 * weightKg) + (6.25 * heightCm) - (5 * age) + 5;
-        } else {
+        } else { // female
             bmr = (10 * weightKg) + (6.25 * heightCm) - (5 * age) - 161;
         }
 
-        let tdee;
+        let activityFactor;
         switch (activityLevel) {
-            case 'sedentary': tdee = bmr * 1.2; break;
-            case 'light': tdee = bmr * 1.375; break;
-            case 'moderate': tdee = bmr * 1.55; break;
-            case 'active': tdee = bmr * 1.725; break;
-            case 'very-active': tdee = bmr * 1.9; break;
-            default: tdee = bmr * 1.2;
+            case 'sedentary':
+                activityFactor = 1.2;
+                break;
+            case 'light':
+                activityFactor = 1.375;
+                break;
+            case 'moderate':
+                activityFactor = 1.55;
+                break;
+            case 'active':
+                activityFactor = 1.725;
+                break;
+            case 'very-active':
+                activityFactor = 1.9;
+                break;
+            default:
+                activityFactor = 1.2;
         }
 
-        calorieResultEl.textContent = Math.round(tdee);
-        setStoredData('lastCalorieCalc', { age, gender, heightCm, weightKg, activityLevel, tdee: Math.round(tdee) });
+        const tdee = bmr * activityFactor; // Total Daily Energy Expenditure
+        calorieResultSpan.textContent = tdee.toFixed(0);
     });
 
-    const lastCalorieCalc = getStoredData('lastCalorieCalc', null);
-    if (lastCalorieCalc) {
-        calorieAgeInput.value = lastCalorieCalc.age;
-        calorieGenderSelect.value = lastCalorieCalc.gender;
-        calorieHeightInput.value = lastCalorieCalc.heightCm;
-        calorieWeightInput.value = lastCalorieCalc.weightKg;
-        calorieActivitySelect.value = lastCalorieCalc.activityLevel;
-        calorieResultEl.textContent = lastCalorieCalc.tdee;
-    }
-
-
-    // Daftar Kontak Darurat
+    // Emergency Contacts
     const addContactForm = document.getElementById('add-contact-form');
+    const contactNameInput = document.getElementById('contact-name');
+    const contactNumberInput = document.getElementById('contact-number');
     const emergencyContactsList = document.getElementById('emergency-contacts-list');
-    let emergencyContacts = getStoredData('emergencyContacts', []);
+
+    let emergencyContacts = JSON.parse(localStorage.getItem('emergencyContacts') || '[]');
 
     function renderEmergencyContacts() {
         emergencyContactsList.innerHTML = '';
         if (emergencyContacts.length === 0) {
-            emergencyContactsList.innerHTML = '<li>Belum ada kontak darurat.</li>';
-            return;
-        }
-        emergencyContacts.forEach((contact, index) => {
-            const li = document.createElement('li');
-            li.innerHTML = `
-                ${contact.name}: ${contact.number}
-                <button class="btn-link remove-contact" data-index="${index}">Hapus</button>
-            `;
-            emergencyContactsList.appendChild(li);
-        });
-
-        document.querySelectorAll('.remove-contact').forEach(button => {
-            button.addEventListener('click', (e) => {
-                const index = parseInt(e.target.dataset.index);
-                emergencyContacts.splice(index, 1);
-                setStoredData('emergencyContacts', emergencyContacts);
-                renderEmergencyContacts();
+            emergencyContactsList.innerHTML = '<p>Belum ada kontak darurat yang disimpan.</p>';
+        } else {
+            emergencyContacts.forEach((contact, index) => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <strong>${contact.name}</strong>: <a href="tel:${contact.number}">${contact.number}</a>
+                    <button class="delete-contact-btn btn-danger" data-index="${index}">Hapus</button>
+                `;
+                emergencyContactsList.appendChild(li);
             });
-        });
+        }
     }
-    renderEmergencyContacts();
 
     addContactForm.addEventListener('submit', (e) => {
         e.preventDefault();
-        const name = document.getElementById('contact-name').value;
-        const number = document.getElementById('contact-number').value;
+        const name = contactNameInput.value.trim();
+        const number = contactNumberInput.value.trim();
 
         if (name && number) {
             emergencyContacts.push({ name, number });
-            setStoredData('emergencyContacts', emergencyContacts);
+            localStorage.setItem('emergencyContacts', JSON.stringify(emergencyContacts));
             renderEmergencyContacts();
-            addContactForm.reset();
+            contactNameInput.value = '';
+            contactNumberInput.value = '';
+            alert('Kontak darurat berhasil ditambahkan!');
         } else {
-            alert('Nama dan nomor kontak tidak boleh kosong.');
+            alert('Harap isi nama dan nomor telepon kontak.');
         }
     });
 
-    // --- 4. Profile & Settings Logic ---
+    emergencyContactsList.addEventListener('click', (e) => {
+        if (e.target.classList.contains('delete-contact-btn')) {
+            const indexToDelete = parseInt(e.target.dataset.index);
+            emergencyContacts.splice(indexToDelete, 1);
+            localStorage.setItem('emergencyContacts', JSON.stringify(emergencyContacts));
+            renderEmergencyContacts();
+        }
+    });
+
+    renderEmergencyContacts(); // Initial render
+
+    // --- Profile & Settings Functionality ---
+
+    // User Information
     const userNameInput = document.getElementById('user-name');
     const userDobInput = document.getElementById('user-dob');
     const userGenderSelect = document.getElementById('user-gender');
     const saveUserInfoBtn = document.getElementById('save-user-info');
-    const setWaterTargetInput = document.getElementById('set-water-target');
-    const saveWaterTargetBtn = document.getElementById('save-water-target');
 
-    let userProfile = getStoredData('userProfile', {});
+    let userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
 
-    function loadUserProfile() {
-        if (userProfile.name) userNameInput.value = userProfile.name;
-        if (userProfile.dob) userDobInput.value = userProfile.dob;
-        if (userProfile.gender) userGenderSelect.value = userProfile.gender;
-
-        setWaterTargetInput.value = waterTarget;
+    function loadUserInfo() {
+        userNameInput.value = userInfo.name || '';
+        userDobInput.value = userInfo.dob || '';
+        userGenderSelect.value = userInfo.gender || '';
     }
-    loadUserProfile();
-
-    document.querySelector('#profile-settings').addEventListener('click', () => {
-        loadUserProfile();
-    });
 
     saveUserInfoBtn.addEventListener('click', () => {
-        userProfile.name = userNameInput.value;
-        userProfile.dob = userDobInput.value;
-        userProfile.gender = userGenderSelect.value;
-        setStoredData('userProfile', userProfile);
+        userInfo.name = userNameInput.value.trim();
+        userInfo.dob = userDobInput.value;
+        userInfo.gender = userGenderSelect.value;
+        localStorage.setItem('userInfo', JSON.stringify(userInfo));
         alert('Informasi pengguna berhasil disimpan!');
     });
 
+    loadUserInfo(); // Initial load
+
+    // Set Daily Water Target
+    const setWaterTargetInput = document.getElementById('set-water-target');
+    const saveWaterTargetBtn = document.getElementById('save-water-target');
+
+    // Initialize the input with the current target from localStorage or default
+    setWaterTargetInput.value = waterTarget;
+
     saveWaterTargetBtn.addEventListener('click', () => {
         const newTarget = parseInt(setWaterTargetInput.value);
-        if (isNaN(newTarget) || newTarget <= 0) {
-            alert('Target air minum harus angka positif.');
-            return;
-        }
-        setStoredData('waterTarget', newTarget);
-        waterTarget = newTarget;
-        updateWaterTrackerUI();
-        alert('Target air minum berhasil disimpan!');
-    });
-
-    // --- PWA Notification Logic (Tambahan untuk Notifikasi) ---
-    // Pastikan Service Worker terdaftar dengan benar
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('service-worker.js')
-            .then(registration => {
-                console.log('Service Worker registered with scope:', registration.scope);
-            })
-            .catch(error => {
-                console.error('Service Worker registration failed:', error);
-            });
-    }
-
-    // Fungsi untuk meminta izin notifikasi
-    function requestNotificationPermission() {
-        if (!('Notification' in window)) {
-            console.log('Browser ini tidak mendukung notifikasi.');
-            return;
-        }
-
-        Notification.requestPermission().then(permission => {
-            if (permission === 'granted') {
-                console.log('Izin notifikasi diberikan.');
-                // Anda bisa menyimpan status izin di localStorage jika diperlukan
-                setStoredData('notificationPermission', 'granted');
-            } else {
-                console.warn('Izin notifikasi ditolak.');
-                setStoredData('notificationPermission', 'denied');
-            }
-        });
-    }
-
-    // Panggil ini di suatu tempat, misalnya saat aplikasi dimuat atau di pengaturan
-    // Anda bisa tambahkan tombol di halaman pengaturan untuk ini
-    // requestNotificationPermission(); // Jangan langsung panggil di sini, lebih baik di trigger user
-
-    // Fungsi untuk menampilkan notifikasi
-    // Ini adalah notifikasi *browser*, bukan notifikasi sistem operasi yang terjadwal
-    function showNotification(title, options = {}) {
-        if (Notification.permission === 'granted') {
-            navigator.serviceWorker.ready.then(registration => {
-                registration.showNotification(title, options);
-            });
-        } else if (Notification.permission === 'denied') {
-            console.warn('Tidak dapat menampilkan notifikasi: izin ditolak.');
-            alert('Izinkan notifikasi di pengaturan browser Anda untuk menerima pengingat.');
+        if (!isNaN(newTarget) && newTarget > 0) {
+            waterTarget = newTarget;
+            localStorage.setItem('waterTarget', waterTarget);
+            updateWaterTracker(); // Update the main water tracker display
+            alert('Target air minum berhasil diperbarui!');
         } else {
-            // Jika izin belum diminta, minta izin terlebih dahulu
-            requestNotificationPermission().then(() => {
-                if (Notification.permission === 'granted') {
-                    navigator.serviceWorker.ready.then(registration => {
-                        registration.showNotification(title, options);
-                    });
-                }
-            });
+            alert('Harap masukkan target air minum yang valid (angka positif).');
         }
-    }
-
-    // --- Scheduling Notifications (Lebih kompleks, butuh Service Worker) ---
-    // Fungsi untuk menjadwalkan notifikasi menggunakan Service Worker
-    async function scheduleMedicineNotifications() {
-        if (Notification.permission !== 'granted') {
-            console.warn('Tidak bisa menjadwalkan notifikasi: izin tidak diberikan.');
-            return;
-        }
-        if (!('showNotification' in ServiceWorkerRegistration.prototype)) {
-            console.warn('Browser tidak mendukung Service Worker Notifications.');
-            return;
-        }
-        if (!('getNotifications' in ServiceWorkerRegistration.prototype)) {
-            console.warn('Browser tidak mendukung Service Worker getNotifications.');
-            return;
-        }
-
-        const registration = await navigator.serviceWorker.ready;
-        const now = new Date();
-        const reminders = getStoredData('medicineReminders', []);
-
-        // Hapus notifikasi yang sudah ada untuk menghindari duplikasi
-        const existingNotifications = await registration.getNotifications({ tag: 'medicine-reminder' });
-        existingNotifications.forEach(notif => notif.close());
-
-        reminders.forEach(reminder => {
-            reminder.schedule.forEach(time => {
-                const [hours, minutes] = time.split(':').map(Number);
-                const reminderDateTime = new Date();
-                reminderDateTime.setHours(hours, minutes, 0, 0);
-
-                // Hanya jadwalkan jika waktu belum lewat hari ini dan belum ditandai selesai
-                const isThisScheduleTakenToday = reminder.takenDates.some(takenEntry => isToday(takenEntry.date) && takenEntry.time === time);
-
-                if (isToday(reminderDateTime.toISOString()) && reminderDateTime.getTime() > now.getTime() && !isThisScheduleTakenToday) {
-                    const timeToNotify = reminderDateTime.getTime() - now.getTime(); // Waktu dalam milidetik
-
-                    // Perlu cara untuk menunda notifikasi dari Service Worker
-                    // Ini adalah bagian yang kompleks dan memerlukan event di service-worker.js
-                    // Untuk PWA yang benar-benar menjadwalkan notifikasi, biasanya melibatkan:
-                    // 1. Mengirim data jadwal ke Service Worker.
-                    // 2. Service Worker menggunakan settimeout atau alarm API (jika ada) untuk memicu notifikasi.
-                    // 3. Atau, cara yang lebih modern: Web Periodic Background Sync API (masih dalam pengembangan)
-                    //    atau Web Notifications API dengan 'showTrigger' (masih sangat terbatas dukungannya).
-
-                    // Untuk saat ini, kita akan menggunakan setTimeout sederhana di main thread.
-                    // Ini tidak akan berfungsi jika PWA ditutup sepenuhnya, tetapi akan bekerja jika PWA berjalan di latar belakang.
-                    setTimeout(() => {
-                        showNotification(`Waktunya Minum ${reminder.name}!`, {
-                            body: `Jangan lupa minum ${reminder.name} dosis ${reminder.dose} pada pukul ${time}.`,
-                            icon: 'icon-192x192.png',
-                            badge: 'icon-192x192.png',
-                            vibrate: [200, 100, 200],
-                            tag: `medicine-reminder-${reminder.name.replace(/\s/g, '-')}-${time}`, // Unique tag for each reminder instance
-                            renotify: true,
-                            data: { reminderId: reminder.name + time } // Bisa dilewatkan data tambahan
-                        });
-                    }, timeToNotify);
-                    console.log(`Pengingat untuk ${reminder.name} pada ${time} dijadwalkan.`);
-                }
-            });
-        });
-    }
-
-    // Panggil penjadwalan notifikasi setiap kali pengingat diubah atau pada start aplikasi
-    addMedicineForm.addEventListener('submit', (e) => {
-        // ... (kode yang sudah ada) ...
-        scheduleMedicineNotifications(); // Panggil setelah menambahkan pengingat
     });
 
-    document.querySelectorAll('.mark-as-taken').forEach(button => {
-        button.addEventListener('click', (e) => {
-            // ... (kode yang sudah ada) ...
-            scheduleMedicineNotifications(); // Panggil setelah menandai selesai
+    // Service Worker Registration for PWA features
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/service-worker.js')
+                .then(registration => {
+                    console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                })
+                .catch(err => {
+                    console.log('ServiceWorker registration failed: ', err);
+                });
         });
-    });
-
-    // Panggil saat aplikasi dimuat dan setiap kali page home aktif
-    showPage('#home'); // Initial call to update quick access and home summary
-    scheduleMedicineNotifications(); // Initial schedule for notifications on load
-    // Tambahkan event listener untuk meminta izin notifikasi di profil/pengaturan
-    // Misalnya, tambahkan tombol di HTML: <button id="request-notif-perm">Aktifkan Notifikasi</button>
-    // document.getElementById('request-notif-perm').addEventListener('click', requestNotificationPermission);
-
+    }
 });
+
+                                           
