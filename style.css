@@ -1,0 +1,381 @@
+/* Import Google Fonts for a formal look */
+@import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Open+Sans:wght@400;600&display=swap');
+
+:root {
+    /* Color Palette */
+    --color-green-primary: #4CAF50; /* Fresh Green */
+    --color-green-dark: #388E3C;   /* Darker Green for accents */
+    --color-brown-accent: #795548; /* Earthy Brown */
+    --color-white: #FFFFFF;        /* Clean White */
+    --color-light-grey: #F5F5F5;   /* Light Grey for backgrounds */
+    --color-dark-text: #333333;    /* Dark text for readability */
+    --color-light-text: #666666;   /* Lighter text for secondary info */
+
+    /* Fonts */
+    --font-heading: 'Merriweather', serif; /* Formal serif for headings */
+    --font-body: 'Open Sans', sans-serif;  /* Clean sans-serif for body text */
+
+    /* Spacing */
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
+
+    /* Border Radius */
+    --border-radius: 8px;
+}
+
+body {
+    font-family: var(--font-body);
+    margin: 0;
+    background-color: var(--color-light-grey);
+    color: var(--color-dark-text);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased; /* Better font rendering on macOS/iOS */
+    -moz-osx-font-smoothing: grayscale; /* Better font rendering on macOS */
+}
+
+/* Header and Navigation */
+header {
+    background-color: var(--color-green-primary);
+    color: var(--color-white);
+    padding: var(--spacing-md) var(--spacing-lg);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.app-title {
+    font-family: var(--font-heading);
+    font-size: 1.8em;
+    font-weight: 700;
+}
+
+.nav-links {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    gap: var(--spacing-lg);
+}
+
+.nav-links a {
+    color: var(--color-white);
+    text-decoration: none;
+    font-weight: 600;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--border-radius);
+    transition: background-color 0.3s ease;
+}
+
+.nav-links a:hover,
+.nav-links a.active {
+    background-color: var(--color-green-dark);
+}
+
+/* Main Content Area */
+main {
+    max-width: 900px;
+    margin: var(--spacing-xl) auto;
+    padding: 0 var(--spacing-md);
+}
+
+.page {
+    display: none; /* Hidden by default, managed by JS */
+    padding: var(--spacing-xl) 0;
+}
+
+.page.active {
+    display: block; /* Show active page */
+}
+
+h1, h2, h3 {
+    font-family: var(--font-heading);
+    color: var(--color-brown-accent);
+    margin-bottom: var(--spacing-md);
+    font-weight: 700;
+}
+
+h1 {
+    font-size: 2.5em;
+    text-align: center;
+    margin-bottom: var(--spacing-xl);
+    color: var(--color-green-dark);
+}
+
+h2 {
+    font-size: 1.8em;
+    border-bottom: 2px solid var(--color-green-primary);
+    padding-bottom: var(--spacing-sm);
+    margin-top: var(--spacing-xl);
+}
+
+h3 {
+    font-size: 1.4em;
+    color: var(--color-green-primary);
+}
+
+/* Cards and Sections */
+.summary-card,
+.tip-card,
+.quick-access,
+.articles-headline,
+.tool-section,
+.user-info-section,
+.daily-target-settings,
+.privacy-terms-section,
+.about-app-section,
+.card, /* For Mitos vs. Fakta */
+.article-item,
+.medicine-item {
+    background-color: var(--color-white);
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+}
+
+/* Buttons */
+.btn-primary,
+.btn-secondary {
+    display: inline-block;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--border-radius);
+    border: none;
+    cursor: pointer;
+    font-family: var(--font-body);
+    font-weight: 600;
+    text-align: center;
+    text-decoration: none;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.btn-primary {
+    background-color: var(--color-green-primary);
+    color: var(--color-white);
+    margin-right: var(--spacing-sm);
+}
+
+.btn-primary:hover {
+    background-color: var(--color-green-dark);
+    transform: translateY(-2px);
+}
+
+.btn-secondary {
+    background-color: var(--color-brown-accent);
+    color: var(--color-white);
+}
+
+.btn-secondary:hover {
+    background-color: darken(var(--color-brown-accent), 10%); /* This won't work in plain CSS, use a slightly darker hex */
+    background-color: #5D4037; /* Slightly darker brown */
+    transform: translateY(-2px);
+}
+
+.btn-link {
+    background: none;
+    border: none;
+    color: var(--color-green-primary);
+    cursor: pointer;
+    text-decoration: underline;
+    font-family: var(--font-body);
+    font-size: 1em;
+    padding: 0;
+    margin-right: var(--spacing-md);
+}
+
+.btn-link:hover {
+    color: var(--color-green-dark);
+}
+
+/* Quick Access Buttons */
+.quick-access button {
+    width: auto;
+    min-width: 150px; /* Adjust as needed */
+    margin: var(--spacing-sm);
+}
+
+/* Forms and Inputs */
+form label {
+    display: block;
+    margin-bottom: var(--spacing-sm);
+    font-weight: 600;
+    color: var(--color-light-text);
+}
+
+form input[type="text"],
+form input[type="number"],
+form input[type="date"],
+form input[type="tel"],
+form select,
+form textarea {
+    width: calc(100% - 20px); /* Adjust for padding */
+    padding: 10px;
+    margin-bottom: var(--spacing-md);
+    border: 1px solid #ddd;
+    border-radius: var(--border-radius);
+    font-family: var(--font-body);
+    font-size: 1em;
+}
+
+form textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+/* Progress Bars */
+.water-progress-container {
+    background-color: var(--color-light-grey);
+    border: 1px solid var(--color-green-primary);
+    border-radius: var(--border-radius);
+    height: 25px;
+    margin-top: var(--spacing-md);
+    overflow: hidden;
+}
+
+#water-progress-bar {
+    height: 100%;
+    background-color: var(--color-green-primary);
+    width: 0%; /* Controlled by JS */
+    transition: width 0.5s ease-in-out;
+    border-radius: var(--border-radius); /* Ensure consistent radius */
+}
+
+/* Lists (Articles, Reminders, Contacts, Mood History) */
+ul {
+    list-style: none;
+    padding: 0;
+}
+
+ul li {
+    background-color: var(--color-light-grey);
+    padding: var(--spacing-sm) var(--spacing-md);
+    margin-bottom: var(--spacing-sm);
+    border-radius: var(--border-radius);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.article-list .article-item {
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+    border: 1px solid #eee;
+}
+
+.article-list .article-item h3 {
+    margin-top: 0;
+    margin-bottom: var(--spacing-sm);
+}
+
+.article-list .article-item a {
+    text-decoration: none;
+    color: var(--color-brown-accent);
+}
+
+.article-list .article-item a:hover {
+    text-decoration: underline;
+    color: var(--color-green-dark);
+}
+
+/* Mitos vs. Fakta */
+.myth-vs-fact .card {
+    border-left: 5px solid var(--color-green-primary);
+    padding-left: var(--spacing-md);
+    margin-top: var(--spacing-md);
+}
+
+.myth-vs-fact .myth {
+    color: var(--color-brown-accent);
+    font-weight: 600;
+}
+
+.myth-vs-fact .fact {
+    color: var(--color-dark-text);
+}
+
+/* Mood Journal */
+.mood-input-options {
+    display: flex;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+    flex-wrap: wrap;
+}
+
+.mood-emoji {
+    font-size: 1.2em;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 1px solid var(--color-green-primary);
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    background-color: var(--color-white);
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.mood-emoji:hover,
+.mood-emoji.selected {
+    background-color: var(--color-green-primary);
+    color: var(--color-white);
+    border-color: var(--color-green-dark);
+}
+
+/* First Aid Guide Images (if you add them) */
+.guide-image {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: var(--spacing-md) auto;
+    border-radius: var(--border-radius);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Footer */
+footer {
+    text-align: center;
+    padding: var(--spacing-lg);
+    margin-top: var(--spacing-xl);
+    background-color: var(--color-brown-accent);
+    color: var(--color-white);
+    font-size: 0.9em;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    nav {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .nav-links {
+        margin-top: var(--spacing-md);
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: var(--spacing-sm);
+    }
+
+    .app-title {
+        text-align: center;
+        width: 100%;
+        margin-bottom: var(--spacing-md);
+    }
+
+    main {
+        margin: var(--spacing-lg) auto;
+        padding: 0 var(--spacing-sm);
+    }
+
+    .quick-access button {
+        width: 100%;
+        margin-bottom: var(--spacing-md);
+    }
+}
+  
