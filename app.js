@@ -112,6 +112,18 @@ document.addEventListener('DOMContentLoaded', () => {
             category: 'perawatan',
             content: 'Kesehatan optimal adalah aset berharga yang berakar kuat pada kebersihan, baik kebersihan diri maupun lingkungan di sekitar kita. Mencuci tangan dengan sabun, mandi teratur, dan menjaga kebersihan mulut adalah praktik personal vital yang menjadi perisai utama kita dari kuman dan infeksi. Sejalan dengan itu, menjaga kebersihan rumah—dengan rutin membersihkan permukaan, mengelola sampah, dan membersihkan area lembap seperti kamar mandi—serta tidak membuang sampah sembarangan di area publik, sangat krusial untuk mencegah penumpukan bakteri, virus, dan hama. Kedua aspek kebersihan ini saling melengkapi; kebersihan diri mencegah penyebaran kuman dari dan ke tubuh kita, sementara lingkungan yang bersih menciptakan ruang hidup yang sehat, secara sinergis membentuk benteng pertahanan terdepan kita melawan berbagai penyakit dan memastikan kualitas hidup yang lebih baik.'
         }
+        {
+            id: '5',
+            title:'',
+            category: 'mental',
+            content: ''
+        }
+    {
+            id: '6',
+            title:'',
+            category: 'penyakit',
+            content: ''
+    }
     ];
 
     function renderArticles(filterCategory = 'all', searchTerm = '') {
