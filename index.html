@@ -37,14 +37,14 @@
             </div>
             <div class="quick-access">
                 <h2>Akses Cepat</h2>
-                <button class="btn-primary" data-target="#tools-water">Tambah Air</button>
-                <button class="btn-primary" data-target="#tools-medicine">Lihat Pengingat Obat</button>
+                <button class="btn-primary navigate-btn" data-target="#tools-water">Tambah Air</button>
+                <button class="btn-primary navigate-btn" data-target="#tools-medicine">Lihat Pengingat Obat</button>
             </div>
             <div class="articles-headline">
                 <h2>Artikel Pilihan</h2>
                 <ul>
-                    <li><a href="#" data-article-id="1">Manfaat Tidur Cukup untuk Produktivitas</a></li>
-                    <li><a href="#" data-article-id="2">Resep Smoothie Sehat untuk Sarapan</a></li>
+                    <li><a href="#info-kesehatan" class="navigate-btn" data-target="#info-kesehatan" data-article-id="1">Manfaat Tidur Cukup untuk Produktivitas</a></li>
+                    <li><a href="#info-kesehatan" class="navigate-btn" data-target="#info-kesehatan" data-article-id="2">Resep Smoothie Sehat untuk Sarapan</a></li>
                 </ul>
             </div>
         </section>
@@ -60,7 +60,7 @@
             <div class="article-categories">
                 <h2>Kategori Artikel</h2>
                 <ul>
-                    <li><a href="#" class="category-filter" data-category="nutrisi">Nutrisi Seimbang</a></li>
+                    <li><a href="#" class="category-filter active" data-category="all">Semua Kategori</a></li> <li><a href="#" class="category-filter" data-category="nutrisi">Nutrisi Seimbang</a></li>
                     <li><a href="#" class="category-filter" data-category="gerak">Gerak Aktif</a></li>
                     <li><a href="#" class="category-filter" data-category="tidur">Kualitas Tidur</a></li>
                     <li><a href="#" class="category-filter" data-category="mental">Kesehatan Mental Dasar</a></li>
@@ -71,21 +71,28 @@
 
             <div class="article-list">
                 <h2>Pustaka Artikel Komprehensif</h2>
-                <div class="article-item" data-category="nutrisi">
-                    <h3><a href="#" data-article-id="1">Manfaat Konsumsi Air Putih Cukup</a></h3>
+                <div class="article-item" data-category="nutrisi" data-article-id="1">
+                    <h3><a href="#" class="article-detail-link" data-article-id="1">Manfaat Konsumsi Air Putih Cukup</a></h3>
                     <p>Air adalah elemen penting bagi tubuh kita. Memastikan asupan air yang cukup...</p>
                     <button class="add-to-favorite">Tambah ke Favorit</button>
-                </div>
-                <div class="article-item" data-category="gerak">
-                    <h3><a href="#" data-article-id="2">Panduan Olahraga Ringan di Rumah</a></h3>
+                    <span class="favorite-status"></span> </div>
+                <div class="article-item" data-category="gerak" data-article-id="2">
+                    <h3><a href="#" class="article-detail-link" data-article-id="2">Panduan Olahraga Ringan di Rumah</a></h3>
                     <p>Tidak perlu ke gym, Anda bisa berolahraga ringan di rumah dengan efektif...</p>
                     <button class="add-to-favorite">Tambah ke Favorit</button>
+                    <span class="favorite-status"></span>
                 </div>
-                 <div class="article-item" data-category="tidur">
-                    <h3><a href="#" data-article-id="3">Tips Meningkatkan Kualitas Tidur Anda</a></h3>
+                 <div class="article-item" data-category="tidur" data-article-id="3">
+                    <h3><a href="#" class="article-detail-link" data-article-id="3">Tips Meningkatkan Kualitas Tidur Anda</a></h3>
                     <p>Tidur yang berkualitas penting untuk kesehatan fisik dan mental...</p>
                     <button class="add-to-favorite">Tambah ke Favorit</button>
+                    <span class="favorite-status"></span>
                 </div>
+            </div>
+            <div id="article-detail-view" style="display: none;">
+                <button class="btn-primary" id="back-to-articles">Kembali ke Daftar Artikel</button>
+                <h2 id="detail-article-title"></h2>
+                <div id="detail-article-content"></div>
             </div>
 
             <div class="myth-vs-fact">
@@ -147,7 +154,7 @@
                 </div>
                 <button class="btn-secondary" id="add-water-btn">Tambah Gelas (+250 ml)</button>
                 <p>Target Harian: <span id="water-target">2000</span> ml</p>
-                <button class="btn-link" data-target="#profile-settings">Atur Target</button>
+                <button class="btn-link navigate-btn" data-target="#profile-settings">Atur Target</button>
             </div>
 
             <div id="tools-medicine" class="tool-section">
@@ -255,19 +262,12 @@
                 <button class="btn-secondary" id="save-water-target">Simpan Target Air</button>
             </div>
 
-            <div class="privacy-terms-section">
-                <h2>Kebijakan Privasi & Syarat Penggunaan</h2>
-                <p>Data Anda disimpan secara lokal di perangkat Anda dan tidak dikumpulkan oleh server kami.</p>
-                <a href="#privacy-policy" class="btn-link">Baca Kebijakan Privasi</a>
-                <a href="#terms-of-service" class="btn-link">Baca Syarat Penggunaan</a>
-            </div>
-
             <div class="about-app-section">
                 <h2>Tentang Aplikasi</h2>
                 <p><strong>Nama Aplikasi:</strong> SehatPeduli</p>
                 <p><strong>Versi:</strong> 1.0.0</p>
                 <p><strong>Pengembang:</strong> Saskia Bunga Anjani</p>
-                <p><strong>Kontak:</strong> saskiabungaanjani@gmail.com</p>
+                <p><strong>Kontak:</strong> info@sehatpeduli.com</p>
             </div>
         </section>
     </main>
@@ -279,5 +279,5 @@
     <script src="app.js"></script>
     <script src="service-worker.js"></script>
 </body>
-  </html>
-  
+    </html>
+                    
