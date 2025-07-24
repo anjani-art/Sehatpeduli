@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SehatPeduli - Aplikasi Kesehatan</title>
+    <meta name="description" content="Aplikasi PWA Kesehatan SehatPeduli oleh Saskia Bunga Anjani.">
+    <link rel="icon" href="favicon.png" type="image/png">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <meta name="theme-color" content="#4CAF50">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="app-title">SehatPeduli</div>
+            <ul class="nav-links">
+                <li><a href="#home" class="active">Beranda</a></li>
+                <li><a href="#info-kesehatan">Informasi</a></li>
+                <li><a href="#tools">Alat Bantu</a></li>
+                <li><a href="#profile-settings">Profil</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section id="home" class="page active">
+            <h1>Beranda</h1>
+            <div class="summary-card">
+                <h2>Ringkasan Kesehatan Harian</h2>
+                <p id="daily-health-summary">Memuat data...</p>
+            </div>
+            <div class="tip-card">
+                <h2>Tips Kesehatan Harian</h2>
+                <p id="daily-health-tip">Mulailah hari dengan segelas air putih!</p>
+            </div>
+            <div class="quick-access">
+                <h2>Akses Cepat</h2>
+                <button class="btn-primary" data-target="#tools-water">Tambah Air</button>
+                <button class="btn-primary" data-target="#tools-medicine">Lihat Pengingat Obat</button>
+            </div>
+            <div class="articles-headline">
+                <h2>Artikel Pilihan</h2>
+                <ul>
+                    <li><a href="#" data-article-id="1">Manfaat Tidur Cukup untuk Produktivitas</a></li>
+                    <li><a href="#" data-article-id="2">Resep Smoothie Sehat untuk Sarapan</a></li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="info-kesehatan" class="page">
+            <h1>Informasi Kesehatan</h1>
+
+            <div class="search-bar">
+                <input type="text" id="article-search" placeholder="Cari artikel...">
+                <button id="search-button">Cari</button>
+            </div>
+
+            <div class="article-categories">
+                <h2>Kategori Artikel</h2>
+                <ul>
+                    <li><a href="#" class="category-filter" data-category="nutrisi">Nutrisi Seimbang</a></li>
+                    <li><a href="#" class="category-filter" data-category="gerak">Gerak Aktif</a></li>
+                    <li><a href="#" class="category-filter" data-category="tidur">Kualitas Tidur</a></li>
+                    <li><a href="#" class="category-filter" data-category="mental">Kesehatan Mental Dasar</a></li>
+                    <li><a href="#" class="category-filter" data-category="penyakit">Pencegahan Penyakit Umum</a></li>
+                    <li><a href="#" class="category-filter" data-category="perawatan">Perawatan Diri</a></li>
+                </ul>
+            </div>
+
+            <div class="article-list">
+                <h2>Pustaka Artikel Komprehensif</h2>
+                <div class="article-item" data-category="nutrisi">
+                    <h3><a href="#" data-article-id="1">Manfaat Konsumsi Air Putih Cukup</a></h3>
+                    <p>Air adalah elemen penting bagi tubuh kita. Memastikan asupan air yang cukup...</p>
+                    <button class="add-to-favorite">Tambah ke Favorit</button>
+                </div>
+                <div class="article-item" data-category="gerak">
+                    <h3><a href="#" data-article-id="2">Panduan Olahraga Ringan di Rumah</a></h3>
+                    <p>Tidak perlu ke gym, Anda bisa berolahraga ringan di rumah dengan efektif...</p>
+                    <button class="add-to-favorite">Tambah ke Favorit</button>
+                </div>
+                 <div class="article-item" data-category="tidur">
+                    <h3><a href="#" data-article-id="3">Tips Meningkatkan Kualitas Tidur Anda</a></h3>
+                    <p>Tidur yang berkualitas penting untuk kesehatan fisik dan mental...</p>
+                    <button class="add-to-favorite">Tambah ke Favorit</button>
+                </div>
+            </div>
+
+            <div class="myth-vs-fact">
+                <h2>Mitos vs. Fakta Kesehatan</h2>
+                <div class="card">
+                    <p class="myth"><strong>Mitos:</strong> Makan malam bikin gemuk.</p>
+                    <p class="fact"><strong>Fakta:</strong> Bukan waktu makan yang menentukan berat badan, melainkan total kalori yang dikonsumsi sepanjang hari.</p>
+                </div>
+                <div class="card">
+                    <p class="myth"><strong>Mitos:</strong> Flu bisa disembuhkan dengan antibiotik.</p>
+                    <p class="fact"><strong>Fakta:</strong> Flu disebabkan oleh virus, antibiotik hanya efektif untuk infeksi bakteri dan tidak akan menyembuhkan flu.</p>
+                </div>
+            </div>
+
+            <div class="first-aid-guide">
+                <h2>Panduan Pertolongan Pertama</h2>
+                <p class="disclaimer"><strong>Penting:</strong> Informasi ini bukan pengganti pertolongan medis profesional. Segera hubungi tenaga medis jika Anda membutuhkan bantuan darurat.</p>
+                <h3>Penanganan Luka Kecil</h3>
+                <ol>
+                    <li>Cuci tangan Anda dengan sabun dan air.</li>
+                    <li>Bersihkan luka dengan air mengalir dan sabun lembut.</li>
+                    <li>Keringkan luka perlahan dengan kain bersih atau kasa steril.</li>
+                    <li>Oleskan antiseptik dan tutup dengan plester atau perban steril.</li>
+                </ol>
+                <h3>Penanganan Mimisan</h3>
+                <ol>
+                    <li>Duduk tegak dan condongkan tubuh sedikit ke depan.</li>
+                    <li>Pencet hidung bagian lunak di atas lubang hidung selama 10-15 menit.</li>
+                    <li>Bernapaslah melalui mulut.</li>
+                    <li>Jangan berbaring atau mendongak.</li>
+                </ol>
+                </div>
+
+            <div class="common-medicines">
+                <h2>Daftar Obat Bebas Umum</h2>
+                <div class="medicine-item">
+                    <h3>Paracetamol</h3>
+                    <p><strong>Kegunaan:</strong> Meredakan demam dan nyeri ringan hingga sedang.</p>
+                    <p><strong>Dosis Umum:</strong> Dewasa 500-1000 mg setiap 4-6 jam jika perlu, tidak melebihi 4000 mg dalam 24 jam.</p>
+                    <p><strong>Peringatan:</strong> Jangan melebihi dosis yang dianjurkan, hati-hati pada penderita gangguan hati.</p>
+                </div>
+                <div class="medicine-item">
+                    <h3>Antasida</h3>
+                    <p><strong>Kegunaan:</strong> Meredakan gejala sakit maag, perut kembung, dan rasa tidak nyaman akibat asam lambung berlebih.</p>
+                    <p><strong>Dosis Umum:</strong> Ikuti petunjuk pada kemasan, biasanya dikonsumsi setelah makan dan sebelum tidur.</p>
+                    <p><strong>Peringatan:</strong> Dapat mempengaruhi penyerapan obat lain, beri jeda waktu.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="tools" class="page">
+            <h1>Alat Bantu Pribadi</h1>
+
+            <div id="tools-water" class="tool-section">
+                <h2>Pelacak Air Minum</h2>
+                <p>Air yang sudah diminum hari ini: <span id="water-consumed">0</span> ml</p>
+                <div class="water-progress-container">
+                    <div id="water-progress-bar" style="width: 0%;"></div>
+                </div>
+                <button class="btn-secondary" id="add-water-btn">Tambah Gelas (+250 ml)</button>
+                <p>Target Harian: <span id="water-target">2000</span> ml</p>
+                <button class="btn-link" data-target="#profile-settings">Atur Target</button>
+            </div>
+
+            <div id="tools-medicine" class="tool-section">
+                <h2>Pengingat Obat</h2>
+                <form id="add-medicine-form">
+                    <label for="medicine-name">Nama Obat:</label>
+                    <input type="text" id="medicine-name" required>
+                    <label for="medicine-dose">Dosis:</label>
+                    <input type="text" id="medicine-dose" required>
+                    <label for="medicine-schedule">Jadwal (cth: 08:00, 15:00):</label>
+                    <input type="text" id="medicine-schedule" placeholder="HH:MM, HH:MM" required>
+                    <button type="submit" class="btn-secondary">Tambah Pengingat</button>
+                </form>
+                <h3>Pengingat Aktif:</h3>
+                <ul id="active-medicine-reminders">
+                    </ul>
+            </div>
+
+            <div id="tools-mood" class="tool-section">
+                <h2>Jurnal Mood Harian</h2>
+                <p>Bagaimana perasaanmu hari ini?</p>
+                <div class="mood-input-options">
+                    <span class="mood-emoji" data-mood="senang">😊 Senang</span>
+                    <span class="mood-emoji" data-mood="netral">😐 Netral</span>
+                    <span class="mood-emoji" data-mood="sedih">😔 Sedih</span>
+                    <span class="mood-emoji" data-mood="cemas">😟 Cemas</span>
+                </div>
+                <textarea id="mood-notes" placeholder="Catatan opsional..."></textarea>
+                <button class="btn-secondary" id="save-mood-btn">Simpan Mood</button>
+                <h3>Riwayat Mood:</h3>
+                <ul id="mood-history">
+                    </ul>
+            </div>
+
+            <div id="tools-calculator" class="tool-section">
+                <h2>Kalkulator Kesehatan Dasar</h2>
+                <h3>Kalkulator BMI</h3>
+                <label for="bmi-height">Tinggi Badan (cm):</label>
+                <input type="number" id="bmi-height" placeholder="cth: 170">
+                <label for="bmi-weight">Berat Badan (kg):</label>
+                <input type="number" id="bmi-weight" placeholder="cth: 65">
+                <button class="btn-secondary" id="calculate-bmi-btn">Hitung BMI</button>
+                <p>BMI Anda: <span id="bmi-result">--</span> (<span id="bmi-category">--</span>)</p>
+
+                <h3>Kalkulator Kebutuhan Kalori Estimasi</h3>
+                <label for="calorie-age">Usia:</label>
+                <input type="number" id="calorie-age" placeholder="cth: 30">
+                <label for="calorie-gender">Jenis Kelamin:</label>
+                <select id="calorie-gender">
+                    <option value="male">Pria</option>
+                    <option value="female">Wanita</option>
+                </select>
+                <label for="calorie-height">Tinggi Badan (cm):</label>
+                <input type="number" id="calorie-height" placeholder="cth: 170">
+                <label for="calorie-weight">Berat Badan (kg):</label>
+                <input type="number" id="calorie-weight" placeholder="cth: 65">
+                <label for="calorie-activity">Tingkat Aktivitas:</label>
+                <select id="calorie-activity">
+                    <option value="sedentary">Sangat Ringan (sedentary)</option>
+                    <option value="light">Ringan</option>
+                    <option value="moderate">Sedang</option>
+                    <option value="active">Aktif</option>
+                    <option value="very-active">Sangat Aktif</option>
+                </select>
+                <button class="btn-secondary" id="calculate-calorie-btn">Hitung Kalori</button>
+                <p>Estimasi Kebutuhan Kalori Harian: <span id="calorie-result">--</span> kalori</p>
+            </div>
+
+            <div id="tools-emergency" class="tool-section">
+                <h2>Daftar Kontak Darurat</h2>
+                <form id="add-contact-form">
+                    <label for="contact-name">Nama Kontak:</label>
+                    <input type="text" id="contact-name" required>
+                    <label for="contact-number">Nomor Telepon:</label>
+                    <input type="tel" id="contact-number" required>
+                    <button type="submit" class="btn-secondary">Tambah Kontak</button>
+                </form>
+                <ul id="emergency-contacts-list">
+                    </ul>
+            </div>
+        </section>
+
+        <section id="profile-settings" class="page">
+            <h1>Profil & Pengaturan</h1>
+
+            <div class="user-info-section">
+                <h2>Informasi Pengguna (Opsional)</h2>
+                <label for="user-name">Nama:</label>
+                <input type="text" id="user-name">
+                <label for="user-dob">Tanggal Lahir:</label>
+                <input type="date" id="user-dob">
+                <label for="user-gender">Jenis Kelamin:</label>
+                <select id="user-gender">
+                    <option value="">Pilih</option>
+                    <option value="male">Pria</option>
+                    <option value="female">Wanita</option>
+                </select>
+                <button class="btn-secondary" id="save-user-info">Simpan Informasi</button>
+            </div>
+
+            <div class="daily-target-settings">
+                <h2>Atur Target Harian</h2>
+                <label for="set-water-target">Target Air Minum (ml):</label>
+                <input type="number" id="set-water-target" value="2000">
+                <button class="btn-secondary" id="save-water-target">Simpan Target Air</button>
+            </div>
+
+            <div class="privacy-terms-section">
+                <h2>Kebijakan Privasi & Syarat Penggunaan</h2>
+                <p>Data Anda disimpan secara lokal di perangkat Anda dan tidak dikumpulkan oleh server kami.</p>
+                <a href="#privacy-policy" class="btn-link">Baca Kebijakan Privasi</a>
+                <a href="#terms-of-service" class="btn-link">Baca Syarat Penggunaan</a>
+            </div>
+
+            <div class="about-app-section">
+                <h2>Tentang Aplikasi</h2>
+                <p><strong>Nama Aplikasi:</strong> SehatPeduli</p>
+                <p><strong>Versi:</strong> 1.0.0</p>
+                <p><strong>Pengembang:</strong> Saskia Bunga Anjani</p>
+                <p><strong>Kontak:</strong> saskiabungaanjani@gmail.com</p>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 SehatPeduli oleh Saskia Bunga Anjani</p>
+    </footer>
+
+    <script src="app.js"></script>
+    <script src="service-worker.js"></script>
+</body>
+  </html>
+  
