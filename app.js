@@ -114,16 +114,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         {
             id: '5',
-            title:'',
+            title:'Menjaga Kesehatan Mental dengan Cara Sederhana',
             category: 'mental',
-            content: ''
+            content: 'Memahami dasar-dasar kesehatan mental adalah kunci untuk menjalani hidup yang seimbang dan produktif. Kesehatan mental mencakup kesejahteraan emosional, psikologis, dan sosial kita, yang memengaruhi cara kita berpikir, merasa, dan bertindak. Menjaga kesehatan mental sama pentingnya dengan menjaga kesehatan fisik. Cara-cara dasar untuk merawatnya meliputi tidur yang cukup, pola makan sehat, aktivitas fisik teratur, mengelola stres, dan menjaga hubungan sosial yang positif. Manfaat dari praktik ini sangat besar, termasuk peningkatan suasana hati, konsentrasi, produktivitas, serta kemampuan untuk menghadapi tantangan hidup dengan lebih baik, yang pada akhirnya membawa kualitas hidup yang lebih baik secara keseluruhan.'
         }
-    {
+        {
             id: '6',
-            title:'',
+            title:'Gaya Hidup Sehat',
             category: 'penyakit',
-            content: ''
-    }
+            content: 'Menjaga kesehatan tubuh adalah kunci untuk menghindari berbagai penyakit umum. Caranya sederhana namun efektif: terapkan gaya hidup sehat secara konsisten. Ini mencakup pola makan seimbang yang kaya buah, sayur, dan biji-bijian, serta membatasi konsumsi gula, garam, dan lemak jenuh. Jangan lupakan olahraga teratur setidaknya 30 menit setiap hari, dan pastikan Anda mendapatkan tidur yang cukup antara 7-9 jam per malam. Selain itu, menjaga kebersihan diri seperti mencuci tangan secara rutin, mengelola stres dengan baik, dan menghindari kebiasaan buruk seperti merokok dan konsumsi alkohol berlebihan juga sangat penting. Terakhir, lakukan pemeriksaan kesehatan rutin dan dapatkan vaksinasi yang diperlukan untuk perlindungan ekstra.'
+        }
     ];
 
     function renderArticles(filterCategory = 'all', searchTerm = '') {
