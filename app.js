@@ -2,8 +2,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- PWA Navigation Logic ---
     const navLinks = document.querySelectorAll('.nav-links a');
     const pages = document.querySelectorAll('.page');
-    const quickAccessButtons = document.querySelectorAll('.quick-access button');
-    const btnLinks = document.querySelectorAll('.btn-link');
+    // Select all buttons/links that should navigate to another section
+    const navigateButtons = document.querySelectorAll('.navigate-btn');
 
     function showPage(id) {
         pages.forEach(page => page.classList.remove('active'));
@@ -17,41 +17,42 @@ document.addEventListener('DOMContentLoaded', () => {
         window.scrollTo(0, 0); // Scroll to top when changing page
     }
 
+    // Event listener for main navigation
     navLinks.forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
             const targetId = link.getAttribute('href');
             showPage(targetId);
-        });
-    });
-
-    quickAccessButtons.forEach(button => {
-        button.addEventListener('click', (e) => {
-            e.preventDefault();
-            const targetId = button.getAttribute('data-target');
-            showPage(targetId);
-        });
-    });
-
-    btnLinks.forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            const targetId = link.getAttribute('data-target');
-            if (targetId) { // Check if data-target exists
-                showPage(targetId);
-            } else { // For privacy policy/terms, just show alert as they are placeholders
-                alert('Halaman ini belum tersedia. Data Anda disimpan secara lokal di perangkat Anda.');
+            // Hide article detail view if navigating away from info-kesehatan
+            if (targetId !== '#info-kesehatan') {
+                document.getElementById('article-detail-view').style.display = 'none';
+                document.querySelector('.article-list').style.display = 'block';
+                document.querySelector('.search-bar').style.display = 'block';
+                document.querySelector('.article-categories').style.display = 'block';
             }
         });
     });
 
+    // Event listener for all general navigation buttons (quick access, article headlines, "Atur Target")
+    navigateButtons.forEach(button => {
+        button.addEventListener('click', (e) => {
+            e.preventDefault();
+            const targetId = button.getAttribute('data-target');
+            if (targetId) {
+                showPage(targetId);
+                // If navigating to an article detail from headline
+                if (button.hasAttribute('data-article-id') && targetId === '#info-kesehatan') {
+                    const articleId = button.getAttribute('data-article-id');
+                    showArticleDetail(articleId);
+                }
+            }
+        });
+    });
 
     // Initialize to Home page
     showPage('#home');
 
     // --- Data Storage (using localStorage for simplicity) ---
-    // A more robust app might use IndexedDB for larger data sets.
-
     const getStoredData = (key, defaultValue = null) => {
         try {
             const data = localStorage.getItem(key);
@@ -70,25 +71,55 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    // --- Helper function for daily reset logic (e.g., for medicine reminders and water intake) ---
+    function isToday(dateString) {
+        if (!dateString) return false;
+        return new Date(dateString).toDateString() === new Date().toDateString();
+    }
+
     // --- 1. Home Section Logic ---
     const dailyHealthSummaryEl = document.getElementById('daily-health-summary');
     const dailyHealthTipEl = document.getElementById('daily-health-tip');
-    const waterConsumedToday = getStoredData('waterConsumedToday', 0);
-    const waterTarget = getStoredData('waterTarget', 2000); // Default 2000ml
+
+    // Load initial data for water and reset if new day
+    let waterConsumedToday = getStoredData('waterConsumedToday', 0);
+    let lastWaterResetDate = getStoredData('lastWaterResetDate', null);
+
+    if (!lastWaterResetDate || !isToday(lastWaterResetDate)) {
+        waterConsumedToday = 0; // Reset for new day
+        setStoredData('waterConsumedToday', waterConsumedToday);
+        setStoredData('lastWaterResetDate', new Date().toISOString());
+    }
+
+    let waterTarget = getStoredData('waterTarget', 2000); // Default 2000ml
 
     function updateHomeSummary() {
-        // Example: Update daily summary based on water intake and medicine reminders
+        // Update home page elements
         const reminders = getStoredData('medicineReminders', []);
-        const activeReminders = reminders.filter(r => !r.isTaken && isToday(r.nextDoseDate)); // Assuming nextDoseDate is set
+        // Filter reminders for today that haven't been taken yet
+        const activeReminders = reminders.filter(r => {
+            // Check if reminder is for today and not yet taken
+            return r.schedule.some(time => {
+                const reminderDate = new Date(); // Current date
+                const [hours, minutes] = time.split(':').map(Number);
+                reminderDate.setHours(hours, minutes, 0, 0);
+
+                // Check if the reminder time is today and has not passed yet, and not taken
+                return isToday(reminderDate.toISOString()) &&
+                       reminderDate.getTime() > Date.now() &&
+                       !r.takenDates.some(takenDate => isToday(takenDate));
+            });
+        });
+
         let summaryText = `Anda sudah minum ${waterConsumedToday / 1000} liter air hari ini.`;
         if (activeReminders.length > 0) {
-            summaryText += `<br>Ada ${activeReminders.length} pengingat obat aktif.`;
+            summaryText += `<br>Ada **${activeReminders.length}** pengingat obat aktif.`;
         } else {
-            summaryText += `<br>Belum ada pengingat obat aktif.`;
+            summaryText += `<br>Belum ada pengingat obat aktif hari ini.`;
         }
         dailyHealthSummaryEl.innerHTML = summaryText;
 
-        // Simple daily tip rotation (for demonstration)
+        // Simple daily tip rotation
         const tips = [
             "Mulailah hari dengan segelas air putih!",
             "Variasikan menu makanmu dengan sayuran berwarna!",
@@ -100,19 +131,41 @@ document.addEventListener('DOMContentLoaded', () => {
         const dayOfYear = Math.floor((today - new Date(today.getFullYear(), 0, 0)) / 1000 / 60 / 60 / 24);
         dailyHealthTipEl.textContent = tips[dayOfYear % tips.length];
     }
-    updateHomeSummary(); // Initial update
+    updateHomeSummary(); // Initial update on load
 
     // --- 2. Informasi Kesehatan Logic ---
     const articleSearchInput = document.getElementById('article-search');
     const articleListContainer = document.querySelector('.article-list');
-    const articleItems = document.querySelectorAll('.article-item');
+    const allArticleItems = document.querySelectorAll('.article-item'); // All static items
     const categoryFilters = document.querySelectorAll('.category-filter');
+
+    const articleDetailView = document.getElementById('article-detail-view');
+    const detailArticleTitle = document.getElementById('detail-article-title');
+    const detailArticleContent = document.getElementById('detail-article-content');
+    const backToArticlesBtn = document.getElementById('back-to-articles');
+
+    // Simulate article content (in a real app, this might come from an API)
+    const articlesData = {
+        "1": {
+            title: "Manfaat Tidur Cukup untuk Produktivitas",
+            content: "Tidur yang berkualitas adalah fondasi penting untuk produktivitas dan kesehatan secara keseluruhan. Ketika Anda mendapatkan tidur yang cukup, otak Anda memiliki waktu untuk memproses informasi, mengkonsolidasikan memori, dan membuang racun yang menumpuk selama siang hari. Ini berarti Anda akan merasa lebih fokus, kreatif, dan mampu memecahkan masalah dengan lebih baik. Kurang tidur dapat menyebabkan penurunan konsentrasi, mood yang buruk, dan bahkan masalah kesehatan kronis. Pastikan Anda menciptakan rutinitas tidur yang konsisten, menjaga kamar tetap gelap dan sejuk, serta menghindari kafein dan layar gadget sebelum tidur. Prioritaskan tidur Anda sebagai investasi untuk hari esok yang lebih produktif!"
+        },
+        "2": {
+            title: "Resep Smoothie Sehat untuk Sarapan",
+            content: "Memulai hari dengan sarapan bergizi adalah kunci untuk energi sepanjang hari. Smoothie bisa menjadi pilihan yang cepat dan lezat! Coba resep ini: Campurkan 1 buah pisang beku, segenggam bayam (jangan khawatir, rasanya tidak akan dominan!), setengah cangkir buah beri campur (stroberi, blueberry, raspberry), 1 sendok makan selai kacang alami, dan 1 cangkir susu nabati (almond, oat, atau kedelai). Blender semua bahan hingga halus. Smoothie ini kaya akan serat, vitamin, mineral, dan protein yang akan membuat Anda kenyang lebih lama. Anda bisa berkreasi dengan menambahkan biji chia, biji rami, atau bubuk protein untuk nutrisi tambahan. Selamat mencoba!"
+        },
+        "3": {
+            title: "Tips Meningkatkan Kualitas Tidur Anda",
+            content: "Kualitas tidur sangat memengaruhi kesehatan dan kesejahteraan Anda. Jika Anda kesulitan tidur nyenyak, ada beberapa kebiasaan yang bisa Anda coba. Pertama, buat jadwal tidur yang teratur, bahkan di akhir pekan. Kedua, ciptakan lingkungan kamar tidur yang ideal: gelap, tenang, dan sejuk. Hindari penggunaan perangkat elektronik setidaknya satu jam sebelum tidur karena cahaya biru dapat mengganggu produksi melatonin. Batasi konsumsi kafein dan alkohol, terutama di sore dan malam hari. Terakhir, pertimbangkan untuk melakukan aktivitas relaksasi sebelum tidur seperti membaca buku, mandi air hangat, atau meditasi ringan. Dengan konsistensi, Anda akan merasakan peningkatan kualitas tidur yang signifikan."
+        }
+    };
 
     function filterArticles() {
         const searchTerm = articleSearchInput.value.toLowerCase();
-        const activeCategory = document.querySelector('.category-filter.active')?.dataset.category || 'all';
+        const activeCategoryFilter = document.querySelector('.category-filter.active');
+        const activeCategory = activeCategoryFilter ? activeCategoryFilter.dataset.category : 'all';
 
-        articleItems.forEach(item => {
+        allArticleItems.forEach(item => {
             const title = item.querySelector('h3').textContent.toLowerCase();
             const category = item.dataset.category;
 
@@ -127,6 +180,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Initial filter when page loads
+    filterArticles();
+
     articleSearchInput.addEventListener('input', filterArticles);
 
     categoryFilters.forEach(filter => {
@@ -138,12 +194,79 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Favorites (simple example)
+    // Handle showing article detail
+    document.querySelectorAll('.article-detail-link').forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const articleId = link.getAttribute('data-article-id');
+            showArticleDetail(articleId);
+        });
+    });
+
+    // Handle "Kembali ke Daftar Artikel" button
+    backToArticlesBtn.addEventListener('click', () => {
+        articleDetailView.style.display = 'none';
+        articleListContainer.style.display = 'block';
+        document.querySelector('.search-bar').style.display = 'block';
+        document.querySelector('.article-categories').style.display = 'block';
+    });
+
+
+    function showArticleDetail(articleId) {
+        const article = articlesData[articleId];
+        if (article) {
+            detailArticleTitle.textContent = article.title;
+            detailArticleContent.textContent = article.content; // Use textContent to avoid XSS if content is from external source
+
+            articleListContainer.style.display = 'none';
+            document.querySelector('.search-bar').style.display = 'none';
+            document.querySelector('.article-categories').style.display = 'none';
+            articleDetailView.style.display = 'block';
+            window.scrollTo(0, 0); // Scroll to top
+        } else {
+            alert('Artikel tidak ditemukan.');
+        }
+    }
+
+
+    // Favorites logic
+    let favoriteArticles = getStoredData('favoriteArticles', []);
+
+    function updateFavoriteButtons() {
+        document.querySelectorAll('.add-to-favorite').forEach(button => {
+            const articleItem = button.closest('.article-item');
+            const articleId = articleItem.dataset.articleId;
+            const favoriteStatusSpan = articleItem.querySelector('.favorite-status');
+
+            if (favoriteArticles.includes(articleId)) {
+                button.textContent = 'Hapus dari Favorit';
+                button.classList.add('favorited');
+                favoriteStatusSpan.textContent = '⭐'; // Or other indicator
+            } else {
+                button.textContent = 'Tambah ke Favorit';
+                button.classList.remove('favorited');
+                favoriteStatusSpan.textContent = '';
+            }
+        });
+    }
+    updateFavoriteButtons(); // Call on load
+
     document.querySelectorAll('.add-to-favorite').forEach(button => {
         button.addEventListener('click', () => {
-            const articleTitle = button.previousElementSibling.previousElementSibling.textContent;
-            alert(`"${articleTitle}" ditambahkan ke favorit! (Fitur ini perlu diimplementasikan lebih lanjut)`);
-            // In a real app, you'd store this in localStorage/IndexedDB
+            const articleItem = button.closest('.article-item');
+            const articleId = articleItem.dataset.articleId;
+
+            if (favoriteArticles.includes(articleId)) {
+                // Remove from favorites
+                favoriteArticles = favoriteArticles.filter(id => id !== articleId);
+                alert(`Artikel dihapus dari favorit.`);
+            } else {
+                // Add to favorites
+                favoriteArticles.push(articleId);
+                alert(`Artikel ditambahkan ke favorit!`);
+            }
+            setStoredData('favoriteArticles', favoriteArticles);
+            updateFavoriteButtons(); // Update button text and status visually
         });
     });
 
@@ -156,30 +279,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const waterProgressBar = document.getElementById('water-progress-bar');
     const waterTargetEl = document.getElementById('water-target');
 
-    function updateWaterTracker() {
+    function updateWaterTrackerUI() {
         waterConsumedEl.textContent = waterConsumedToday;
         waterTargetEl.textContent = waterTarget;
         const progress = (waterConsumedToday / waterTarget) * 100;
         waterProgressBar.style.width = `${Math.min(100, progress)}%`;
-        updateHomeSummary(); // Update home summary when water changes
+        waterProgressBar.style.backgroundColor = progress >= 100 ? '#28a745' : 'var(--color-green-primary)'; // Green if target met
+        updateHomeSummary(); // Update home summary immediately
     }
-    updateWaterTracker();
+    updateWaterTrackerUI(); // Initial update
 
     addWaterBtn.addEventListener('click', () => {
-        const newConsumed = waterConsumedToday + 250;
-        setStoredData('waterConsumedToday', newConsumed);
-        waterConsumedToday = newConsumed; // Update local variable for immediate use
-        updateWaterTracker();
+        waterConsumedToday += 250;
+        setStoredData('waterConsumedToday', waterConsumedToday);
+        updateWaterTrackerUI(); // Update UI immediately
     });
-
-    // Reset water daily (simple logic, could be more robust with date checks)
-    const lastWaterReset = getStoredData('lastWaterReset', null);
-    if (!lastWaterReset || new Date(lastWaterReset).toDateString() !== new Date().toDateString()) {
-        setStoredData('waterConsumedToday', 0);
-        setStoredData('lastWaterReset', new Date().toISOString());
-        waterConsumedToday = 0; // Reset local variable
-        updateWaterTracker();
-    }
 
 
     // Pengingat Obat
@@ -189,27 +303,40 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderMedicineReminders() {
         activeMedicineRemindersList.innerHTML = '';
+        if (medicineReminders.length === 0) {
+            activeMedicineRemindersList.innerHTML = '<li>Belum ada pengingat obat.</li>';
+            return;
+        }
+
         medicineReminders.forEach((reminder, index) => {
             const li = document.createElement('li');
+            const isTakenToday = reminder.takenDates.some(takenDate => isToday(takenDate));
+            const isDisabled = isTakenToday ? 'disabled' : '';
+            const buttonText = isTakenToday ? 'Sudah Diminum' : 'Tandai Selesai';
+            const buttonClass = isTakenToday ? 'mark-as-taken completed' : 'mark-as-taken';
+
             li.innerHTML = `
                 ${reminder.name} - ${reminder.dose} (${reminder.schedule.join(', ')})
-                <button class="mark-as-taken" data-index="${index}" ${reminder.isTaken ? 'disabled' : ''}>${reminder.isTaken ? 'Sudah Diminum' : 'Tandai Selesai'}</button>
+                <button class="${buttonClass}" data-index="${index}" ${isDisabled}>${buttonText}</button>
             `;
             activeMedicineRemindersList.appendChild(li);
         });
 
-        document.querySelectorAll('.mark-as-taken').forEach(button => {
+        document.querySelectorAll('.mark-as-taken:not(.completed)').forEach(button => {
             button.addEventListener('click', (e) => {
                 const index = parseInt(e.target.dataset.index);
-                medicineReminders[index].isTaken = true;
-                medicineReminders[index].takenDate = new Date().toISOString(); // Record when taken
+                // Mark as taken for TODAY
+                if (!medicineReminders[index].takenDates) {
+                    medicineReminders[index].takenDates = [];
+                }
+                medicineReminders[index].takenDates.push(new Date().toISOString());
                 setStoredData('medicineReminders', medicineReminders);
-                renderMedicineReminders();
+                renderMedicineReminders(); // Re-render to update status
                 updateHomeSummary(); // Update home summary
             });
         });
     }
-    renderMedicineReminders();
+    renderMedicineReminders(); // Initial render
 
     addMedicineForm.addEventListener('submit', (e) => {
         e.preventDefault();
@@ -218,20 +345,45 @@ document.addEventListener('DOMContentLoaded', () => {
         const scheduleInput = document.getElementById('medicine-schedule').value;
         const schedule = scheduleInput.split(',').map(s => s.trim());
 
-        // Simple check to ensure HH:MM format (can be more robust)
         const isValidSchedule = schedule.every(time => /^\d{2}:\d{2}$/.test(time));
         if (!isValidSchedule) {
             alert('Format jadwal tidak valid. Gunakan HH:MM, HH:MM. Contoh: 08:00, 15:00');
             return;
         }
 
-        const newReminder = { name, dose, schedule, isTaken: false, nextDoseDate: new Date().toDateString() }; // Simple next dose logic for example
+        const newReminder = { name, dose, schedule, takenDates: [] }; // takenDates to track daily completion
         medicineReminders.push(newReminder);
         setStoredData('medicineReminders', medicineReminders);
         renderMedicineReminders();
         addMedicineForm.reset();
-        updateHomeSummary(); // Update home summary
+        updateHomeSummary();
     });
+
+    // Reset daily taken status for reminders
+    function resetDailyMedicineStatus() {
+        let changed = false;
+        medicineReminders.forEach(reminder => {
+            // Filter out old taken dates, keep only today's (if any)
+            const todayTakenDates = reminder.takenDates.filter(takenDate => isToday(takenDate));
+            if (todayTakenDates.length !== reminder.takenDates.length) {
+                reminder.takenDates = todayTakenDates;
+                changed = true;
+            }
+        });
+        if (changed) {
+            setStoredData('medicineReminders', medicineReminders);
+            renderMedicineReminders();
+            updateHomeSummary();
+        }
+    }
+    // Call this daily reset logic periodically or on app start if last reset was yesterday
+    // A simple way: check on every app load (as done for water)
+    const lastMedicineResetDate = getStoredData('lastMedicineResetDate', null);
+    if (!lastMedicineResetDate || !isToday(lastMedicineResetDate)) {
+        resetDailyMedicineStatus();
+        setStoredData('lastMedicineResetDate', new Date().toISOString());
+    }
+
 
     // Jurnal Mood Harian
     const moodEmojis = document.querySelectorAll('.mood-emoji');
@@ -243,9 +395,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderMoodHistory() {
         moodHistoryList.innerHTML = '';
+        if (moodHistory.length === 0) {
+            moodHistoryList.innerHTML = '<li>Belum ada riwayat mood.</li>';
+            return;
+        }
         moodHistory.forEach(entry => {
             const li = document.createElement('li');
-            li.textContent = `${new Date(entry.date).toLocaleDateString()} ${entry.emoji} ${entry.mood} - ${entry.notes || ''}`;
+            li.innerHTML = `<strong>${new Date(entry.date).toLocaleDateString()}</strong> ${entry.emoji} ${entry.mood} - ${entry.notes || ''}`;
             moodHistoryList.appendChild(li);
         });
     }
@@ -270,7 +426,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 emoji: selectedMood.emoji,
                 notes: moodNotesInput.value.trim()
             };
-            moodHistory.unshift(newMoodEntry); // Add to beginning
+            // Check if mood for today already exists, if so, update it
+            const todayEntryIndex = moodHistory.findIndex(entry => isToday(entry.date));
+            if (todayEntryIndex > -1) {
+                moodHistory[todayEntryIndex] = newMoodEntry; // Update existing entry
+            } else {
+                moodHistory.unshift(newMoodEntry); // Add to beginning
+            }
+
             setStoredData('moodHistory', moodHistory);
             renderMoodHistory();
             selectedMood = null;
@@ -388,6 +551,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderEmergencyContacts() {
         emergencyContactsList.innerHTML = '';
+        if (emergencyContacts.length === 0) {
+            emergencyContactsList.innerHTML = '<li>Belum ada kontak darurat.</li>';
+            return;
+        }
         emergencyContacts.forEach((contact, index) => {
             const li = document.createElement('li');
             li.innerHTML = `
@@ -437,8 +604,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (userProfile.name) userNameInput.value = userProfile.name;
         if (userProfile.dob) userDobInput.value = userProfile.dob;
         if (userProfile.gender) userGenderSelect.value = userProfile.gender;
+
+        // Ensure water target input is updated when profile page is loaded
+        setWaterTargetInput.value = waterTarget;
     }
-    loadUserProfile();
+    loadUserProfile(); // Initial load
+
+    // When profile section becomes active, ensure fields are populated
+    document.querySelector('#profile-settings').addEventListener('click', () => {
+        loadUserProfile();
+    });
+
 
     saveUserInfoBtn.addEventListener('click', () => {
         userProfile.name = userNameInput.value;
@@ -448,8 +624,6 @@ document.addEventListener('DOMContentLoaded', () => {
         alert('Informasi pengguna berhasil disimpan!');
     });
 
-    // Load water target setting
-    setWaterTargetInput.value = waterTarget; // Use the already loaded waterTarget variable
 
     saveWaterTargetBtn.addEventListener('click', () => {
         const newTarget = parseInt(setWaterTargetInput.value);
@@ -459,14 +633,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         setStoredData('waterTarget', newTarget);
         waterTarget = newTarget; // Update local variable
-        updateWaterTracker(); // Update tracker to reflect new target
+        updateWaterTrackerUI(); // Update tracker to reflect new target immediately
         alert('Target air minum berhasil disimpan!');
     });
-
-
-    // Helper function for daily reset logic (e.g., for medicine reminders)
-    function isToday(dateString) {
-        if (!dateString) return false;
-        return new Date(dateString).toDateString() === new Date().toDateString();
-    }
 });
